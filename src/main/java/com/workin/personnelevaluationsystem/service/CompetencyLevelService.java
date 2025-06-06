@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CompetencyLevelService {
-    // Create/Update levels directly, often for adding to an existing competency
     CompetencyLevelDTO createCompetencyLevel(Integer competencyId, CompetencyLevelDTO levelDTO);
     Optional<CompetencyLevelDTO> getCompetencyLevelById(Integer id);
     List<CompetencyLevelDTO> getCompetencyLevelsByCompetencyId(Integer competencyId);
+    List<CompetencyLevelDTO> getAllCompetencyLevels(); // <-- ADD THIS METHOD
     CompetencyLevelDTO updateCompetencyLevel(Integer id, CompetencyLevelDTO levelDetailsDTO);
     void deleteCompetencyLevel(Integer id);
 }

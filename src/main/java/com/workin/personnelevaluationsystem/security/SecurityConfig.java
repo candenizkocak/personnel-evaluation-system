@@ -57,7 +57,6 @@ public class SecurityConfig {
                         .requestMatchers("/WEB-INF/**").permitAll()
 
                         // Authorize all web controller paths that require authentication.
-                        // The @PreAuthorize annotation on each controller method will handle the specific role checks.
                         .requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/departments/**").authenticated()
                         .requestMatchers("/positions/**").authenticated()
@@ -70,11 +69,15 @@ public class SecurityConfig {
                         .requestMatchers("/permissions/**").authenticated()
                         .requestMatchers("/roles/**").authenticated()
                         .requestMatchers("/users/**").authenticated()
-
-                        // *** ADDED RULES FOR GOAL MANAGEMENT ***
                         .requestMatchers("/goal-types/**").authenticated()
                         .requestMatchers("/goal-statuses/**").authenticated()
                         .requestMatchers("/goals/**").authenticated()
+                        .requestMatchers("/competency-categories/**").authenticated()
+                        .requestMatchers("/competencies/**").authenticated()
+                        .requestMatchers("/competency-levels/**").authenticated()
+                        .requestMatchers("/employee-competencies/**").authenticated()
+                        .requestMatchers("/feedback-types/**").authenticated() // <-- ADD THIS
+                        .requestMatchers("/feedback/**").authenticated()       // <-- AND THIS
 
                         // API endpoints
                         .requestMatchers("/api/v1/**").authenticated()
