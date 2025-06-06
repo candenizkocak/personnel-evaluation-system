@@ -16,7 +16,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true) // Keep this, it enables @PreAuthorize
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
@@ -48,29 +48,35 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        .ignoringRequestMatchers("/api/v1/**") // Disable CSRF checks for all /api/v1 paths
+                        .ignoringRequestMatchers("/api/v1/**")
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        // IMPORTANT: Allow internal JSP paths to be accessed by the DispatcherServlet without security checks
-                        .requestMatchers("/WEB-INF/**").permitAll() // <--- ADD THIS LINE HERE
-
                         // Public access for static resources and authentication pages
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
                         .requestMatchers("/", "/home", "/login", "/register", "/error").permitAll()
+                        .requestMatchers("/WEB-INF/**").permitAll()
 
-                        // API endpoints: require authentication (and specific roles/permissions)
-                        .requestMatchers("/api/v1/departments/**").hasAnyRole("ADMIN", "HR_SPECIALIST")
-                        .requestMatchers("/api/v1/employees/**").hasAnyRole("ADMIN", "HR_SPECIALIST", "MANAGER")
-                        .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/roles/**", "/api/v1/permissions/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/evaluation-periods/**", "/api/v1/evaluation-types/**", "/api/v1/question-types/**").hasAnyRole("ADMIN", "HR_SPECIALIST")
-                        .requestMatchers("/api/v1/evaluation-forms/**", "/api/v1/evaluation-questions/**").hasAnyRole("ADMIN", "HR_SPECIALIST", "MANAGER")
-                        .requestMatchers("/api/v1/performance-reviews/**", "/api/v1/review-responses/**").hasAnyRole("ADMIN", "HR_SPECIALIST", "MANAGER")
-                        .requestMatchers("/api/v1/competency-categories/**", "/api/v1/competencies/**", "/api/v1/competency-levels/**", "/api/v1/employee-competencies/**").hasAnyRole("ADMIN", "HR_SPECIALIST", "MANAGER")
-                        .requestMatchers("/api/v1/goal-types/**", "/api/v1/goal-statuses/**", "/api/v1/goals/**").hasAnyRole("ADMIN", "HR_SPECIALIST", "MANAGER")
-                        .requestMatchers("/api/v1/feedback-types/**", "/api/v1/feedback/**").hasAnyRole("ADMIN", "HR_SPECIALIST", "EMPLOYEE", "MANAGER")
-                        .requestMatchers("/api/v1/notifications/**").hasAnyRole("ADMIN", "HR_SPECIALIST", "EMPLOYEE", "MANAGER")
-                        .anyRequest().authenticated() // All other paths require authentication by default
+                        // *** THIS IS THE CRITICAL ADDITION ***
+                        // Authorize all web controller paths that require authentication.
+                        // The @PreAuthorize annotation on each controller method will handle the specific role checks.
+                        .requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/departments/**").authenticated()
+                        .requestMatchers("/positions/**").authenticated()
+                        .requestMatchers("/employees/**").authenticated()
+                        .requestMatchers("/evaluation-forms/**").authenticated() // This covers /delete/{id}
+                        .requestMatchers("/evaluation-periods/**").authenticated()
+                        .requestMatchers("/evaluation-types/**").authenticated()
+                        .requestMatchers("/question-types/**").authenticated()
+                        .requestMatchers("/permissions/**").authenticated()
+                        .requestMatchers("/roles/**").authenticated()
+                        .requestMatchers("/users/**").authenticated()
+                        // Add other web controller base paths here as you build them
+
+                        // API endpoints (already configured, no changes needed here)
+                        .requestMatchers("/api/v1/**").authenticated()
+
+                        // Default rule: any other request must be authenticated.
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")

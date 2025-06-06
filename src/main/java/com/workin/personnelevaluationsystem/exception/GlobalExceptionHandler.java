@@ -1,9 +1,10 @@
 package com.workin.personnelevaluationsystem.exception;
 
+import org.springframework.beans.InvalidPropertyException; // <-- IMPORT THIS
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError; // Import FieldError
-import org.springframework.web.bind.MethodArgumentNotValidException; // Import MethodArgumentNotValidException
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -11,7 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors; // Import Collectors
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,18 +41,30 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    // NEW: Handles validation errors
+    // NEW: Handles data binding errors like the one you are seeing
+    @ExceptionHandler(InvalidPropertyException.class)
+    public ResponseEntity<Object> handleInvalidPropertyException(InvalidPropertyException ex, WebRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        body.put("message", "There was an error binding form data. Please check the submitted fields. Details: " + ex.getMessage());
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
         Map<String, String> errors = ex.getBindingResult().getAllErrors().stream()
                 .collect(Collectors.toMap(
                         error -> {
                             if (error instanceof FieldError) {
-                                return ((FieldError) error).getField(); // Get field name for field-specific errors
+                                return ((FieldError) error).getField();
                             }
-                            return error.getObjectName(); // Get object name for class-level errors
+                            return error.getObjectName();
                         },
-                        error -> error.getDefaultMessage() // Get the validation message
+                        error -> error.getDefaultMessage()
                 ));
 
         Map<String, Object> body = new HashMap<>();
@@ -59,7 +72,7 @@ public class GlobalExceptionHandler {
         body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("error", "Validation Error");
         body.put("message", "Input validation failed");
-        body.put("validationErrors", errors); // Include the map of validation errors
+        body.put("validationErrors", errors);
         body.put("path", request.getDescription(false).replace("uri=", ""));
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);

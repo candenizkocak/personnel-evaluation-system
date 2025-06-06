@@ -1,28 +1,23 @@
 package com.workin.personnelevaluationsystem.controller;
 
 import com.workin.personnelevaluationsystem.dto.EvaluationFormDTO;
-import com.workin.personnelevaluationsystem.dto.EvaluationQuestionDTO; // Nested DTO
-import com.workin.personnelevaluationsystem.dto.EvaluationTypeDTO; // For dropdown
-import com.workin.personnelevaluationsystem.dto.QuestionTypeDTO; // For nested dropdown
+import com.workin.personnelevaluationsystem.dto.EvaluationQuestionDTO;
+import com.workin.personnelevaluationsystem.dto.EvaluationTypeDTO;
+import com.workin.personnelevaluationsystem.dto.QuestionTypeDTO;
 import com.workin.personnelevaluationsystem.service.EvaluationFormService;
+import com.workin.personnelevaluationsystem.service.EvaluationQuestionService;
 import com.workin.personnelevaluationsystem.service.EvaluationTypeService;
 import com.workin.personnelevaluationsystem.service.QuestionTypeService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/evaluation-forms")
@@ -31,128 +26,101 @@ public class EvaluationFormWebController {
     private final EvaluationFormService evaluationFormService;
     private final EvaluationTypeService evaluationTypeService;
     private final QuestionTypeService questionTypeService;
+    private final EvaluationQuestionService questionService;
 
     @Autowired
     public EvaluationFormWebController(EvaluationFormService evaluationFormService,
                                        EvaluationTypeService evaluationTypeService,
-                                       QuestionTypeService questionTypeService) {
+                                       QuestionTypeService questionTypeService,
+                                       EvaluationQuestionService questionService) {
         this.evaluationFormService = evaluationFormService;
         this.evaluationTypeService = evaluationTypeService;
         this.questionTypeService = questionTypeService;
+        this.questionService = questionService;
     }
 
-    // Helper to prepare model for form
-    private void prepareFormModel(Model model, EvaluationFormDTO formDTO, boolean isEdit) {
-        model.addAttribute("evaluationForm", formDTO);
-        model.addAttribute("isEdit", isEdit);
-        model.addAttribute("pageTitle", isEdit ? "Edit Evaluation Form" : "Create New Evaluation Form");
-
-        // Fetch all evaluation types for the dropdown
-        List<EvaluationTypeDTO> evaluationTypes = evaluationTypeService.getAllEvaluationTypes();
-        model.addAttribute("evaluationTypes", evaluationTypes);
-
-        // Fetch all question types for the nested question dropdowns
-        List<QuestionTypeDTO> questionTypes = questionTypeService.getAllQuestionTypes();
-        model.addAttribute("questionTypes", questionTypes);
-    }
-
-    // List all evaluation forms
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')") // Managers might need to view forms too
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')")
     public String listEvaluationForms(Model model) {
-        List<EvaluationFormDTO> forms = evaluationFormService.getAllEvaluationForms();
-        model.addAttribute("evaluationForms", forms);
-        model.addAttribute("pageTitle", "Evaluation Forms List");
+        model.addAttribute("evaluationForms", evaluationFormService.getAllEvaluationForms());
+        model.addAttribute("pageTitle", "Evaluation Forms");
         return "evaluation-forms/list";
     }
 
-    // Show form for new evaluation form
     @GetMapping("/new")
     @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")
     public String showAddForm(Model model) {
-        EvaluationFormDTO formDTO = (EvaluationFormDTO) model.getAttribute("evaluationForm");
-        if (formDTO == null) {
-            formDTO = new EvaluationFormDTO();
-            formDTO.setIsActive(true); // Default to active
-            formDTO.setQuestions(new ArrayList<>()); // Initialize questions list for new form
-        }
-        prepareFormModel(model, formDTO, false);
-        return "evaluation-forms/form";
+        model.addAttribute("evaluationForm", new EvaluationFormDTO());
+        model.addAttribute("evaluationTypes", evaluationTypeService.getAllEvaluationTypes());
+        model.addAttribute("pageTitle", "Create New Form Shell");
+        return "evaluation-forms/form-shell";
     }
 
-    // Show form for editing evaluation form
+    @PostMapping("/save-shell")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")
+    public String saveFormShell(@Valid @ModelAttribute("evaluationForm") EvaluationFormDTO formDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("evaluationTypes", evaluationTypeService.getAllEvaluationTypes());
+            model.addAttribute("pageTitle", "Create New Form Shell");
+            return "evaluation-forms/form-shell";
+        }
+        try {
+            EvaluationFormDTO savedForm = evaluationFormService.createEvaluationForm(formDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Form shell created. Now add questions.");
+            return "redirect:/evaluation-forms/edit/" + savedForm.getFormID();
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Error creating form: " + e.getMessage());
+            model.addAttribute("evaluationTypes", evaluationTypeService.getAllEvaluationTypes());
+            model.addAttribute("pageTitle", "Create New Form Shell");
+            return "evaluation-forms/form-shell";
+        }
+    }
+
     @GetMapping("/edit/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")
     public String showEditForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
-        EvaluationFormDTO formDTO = (EvaluationFormDTO) model.getAttribute("evaluationForm");
-        if (formDTO == null || (formDTO.getFormID() != null && !formDTO.getFormID().equals(id))) {
-            Optional<EvaluationFormDTO> existingForm = evaluationFormService.getEvaluationFormById(id);
-            if (existingForm.isPresent()) {
-                formDTO = existingForm.get();
-                // Ensure questions list is not null, for adding new questions on edit
-                if (formDTO.getQuestions() == null) {
-                    formDTO.setQuestions(new ArrayList<>());
-                }
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage", "Evaluation Form not found!");
-                return "redirect:/evaluation-forms";
-            }
-        }
-        prepareFormModel(model, formDTO, true);
-        return "evaluation-forms/form";
+        return evaluationFormService.getEvaluationFormById(id).map(form -> {
+            model.addAttribute("evaluationForm", form);
+            model.addAttribute("questionTypes", questionTypeService.getAllQuestionTypes());
+            model.addAttribute("newQuestion", new EvaluationQuestionDTO());
+            model.addAttribute("pageTitle", "Manage Form: " + form.getTitle());
+            return "evaluation-forms/form-manage-questions";
+        }).orElseGet(() -> {
+            redirectAttributes.addFlashAttribute("errorMessage", "Form not found.");
+            return "redirect:/evaluation-forms";
+        });
     }
 
-    // Save/Update evaluation form
-    @PostMapping("/save")
+    @PostMapping("/{formId}/questions/add")
     @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")
-    public String saveEvaluationForm(@Valid EvaluationFormDTO evaluationFormDTO,
-                                     BindingResult bindingResult,
-                                     RedirectAttributes redirectAttributes) {
-
-        // Custom validation for questions list (e.g., minimum number of questions)
-        if (evaluationFormDTO.getQuestions() == null || evaluationFormDTO.getQuestions().isEmpty()) {
-            // bindingResult.rejectValue("questions", "NotEmpty.evaluationForm.questions", "An evaluation form must have at least one question.");
-            // Or, handle as a global error
-            if (evaluationFormDTO.getQuestions() == null || evaluationFormDTO.getQuestions().isEmpty()) {
-                bindingResult.reject("form.questions.empty", "An evaluation form must have at least one question.");
-            }
-        } else {
-            // Validate uniqueness of orderIndex within the form
-            long distinctOrderIndexes = evaluationFormDTO.getQuestions().stream()
-                    .map(EvaluationQuestionDTO::getOrderIndex)
-                    .distinct()
-                    .count();
-            if (distinctOrderIndexes != evaluationFormDTO.getQuestions().size()) {
-                bindingResult.reject("form.questions.duplicateOrderIndex", "Each question must have a unique order index within the form.");
-            }
-        }
-
+    public String addQuestionToForm(@PathVariable Integer formId, @Valid @ModelAttribute("newQuestion") EvaluationQuestionDTO questionDTO, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Validation errors occurred. Please check the form.");
-            redirectAttributes.addFlashAttribute("evaluationForm", evaluationFormDTO);
-            redirectAttributes.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "evaluationForm", bindingResult);
-            return (evaluationFormDTO.getFormID() != null) ? "redirect:/evaluation-forms/edit/" + evaluationFormDTO.getFormID() : "redirect:/evaluation-forms/new";
-        }
-
-        try {
-            if (evaluationFormDTO.getFormID() == null) {
-                evaluationFormService.createEvaluationForm(evaluationFormDTO);
-                redirectAttributes.addFlashAttribute("successMessage", "Evaluation Form created successfully!");
-            } else {
-                evaluationFormService.updateEvaluationForm(evaluationFormDTO.getFormID(), evaluationFormDTO);
-                redirectAttributes.addFlashAttribute("successMessage", "Evaluation Form updated successfully!");
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.newQuestion", bindingResult);
+            redirectAttributes.addFlashAttribute("newQuestion", questionDTO);
+            redirectAttributes.addFlashAttribute("questionError", true);
+        } else {
+            try {
+                questionService.createEvaluationQuestion(formId, questionDTO);
+                redirectAttributes.addFlashAttribute("successMessage", "Question added successfully!");
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Error adding question: " + e.getMessage());
             }
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error saving evaluation form: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("evaluationForm", evaluationFormDTO);
-            redirectAttributes.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "evaluationForm", bindingResult);
-            return (evaluationFormDTO.getFormID() != null) ? "redirect:/evaluation-forms/edit/" + evaluationFormDTO.getFormID() : "redirect:/evaluation-forms/new";
         }
-
-        return "redirect:/evaluation-forms";
+        return "redirect:/evaluation-forms/edit/" + formId;
     }
 
-    // Delete evaluation form
+    @GetMapping("/{formId}/questions/{questionId}/delete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")
+    public String deleteQuestionFromForm(@PathVariable Integer formId, @PathVariable Integer questionId, RedirectAttributes redirectAttributes) {
+        try {
+            questionService.deleteEvaluationQuestion(questionId);
+            redirectAttributes.addFlashAttribute("successMessage", "Question deleted successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting question: " + e.getMessage());
+        }
+        return "redirect:/evaluation-forms/edit/" + formId;
+    }
+
     @GetMapping("/delete/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")
     public String deleteEvaluationForm(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
@@ -160,7 +128,7 @@ public class EvaluationFormWebController {
             evaluationFormService.deleteEvaluationForm(id);
             redirectAttributes.addFlashAttribute("successMessage", "Evaluation Form deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting evaluation form: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting form: " + e.getMessage());
         }
         return "redirect:/evaluation-forms";
     }
