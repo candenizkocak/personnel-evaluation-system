@@ -1,22 +1,31 @@
 package com.workin.personnelevaluationsystem.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "Users") // Maps to the Users table in SQL
-@Data
+@Table(name = "Users")
+@Data // Lombok handles getters/setters
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+@EqualsAndHashCode(exclude = {"employee", "roles"}) // Crucial for Hibernate performance/avoiding loops
+@ToString(exclude = {"passwordHash", "employee", "roles"}) // Exclude sensitive/recursive fields from toString
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,10 +39,6 @@ public class User {
     private String passwordHash;
 
     // One-to-One relationship with Employee
-    // UserID is the primary key and also the foreign key to Employee.
-    // It's a best practice to make the Employee side the owning side if it's the primary entity.
-    // However, based on the SQL `EmployeeID INT FOREIGN KEY REFERENCES Employees(EmployeeID)` in `Users` table,
-    // it seems User table holds the FK. This means User is the owning side.
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "EmployeeID", unique = true) // EmployeeID column in Users table
     private Employee employee;
@@ -45,8 +50,6 @@ public class User {
     private Boolean isLocked;
 
     // Many-to-Many relationship with Roles
-    // The 'joinColumns' is for the current (User) entity's foreign key in the join table
-    // The 'inverseJoinColumns' is for the other (Role) entity's foreign key in the join table
     @ManyToMany(fetch = FetchType.EAGER) // Fetch roles eagerly, common for authentication
     @JoinTable(
             name = "UserRoles", // Name of the join table
@@ -54,4 +57,44 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "RoleID") // Column in UserRoles table for Role
     )
     private Set<Role> roles = new HashSet<>();
+
+    // --- UserDetails interface methods ---
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Map our custom Role objects to Spring Security's GrantedAuthority
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName())) // Prefix with "ROLE_" for convention
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getPassword() {
+        return this.passwordHash;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // For now, assume accounts don't expire
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return this.isLocked != null ? !this.isLocked : true; // If isLocked is null, default to not locked
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // For now, assume credentials don't expire
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // For now, assume all users are enabled
+    }
 }

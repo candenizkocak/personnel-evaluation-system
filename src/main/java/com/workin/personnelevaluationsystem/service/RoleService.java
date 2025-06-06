@@ -11,7 +11,5 @@ public interface RoleService {
     List<RoleDTO> getAllRoles();
     RoleDTO updateRole(Integer id, RoleDTO roleDetailsDTO);
     void deleteRole(Integer id);
-    // You might add methods to manage permissions on a role later
-    // RoleDTO addPermissionToRole(Integer roleId, Integer permissionId);
-    // RoleDTO removePermissionFromRole(Integer roleId, Integer permissionId);
+    Optional<RoleDTO> getRoleByName(String name); // <--- ADD THIS LINE
 }

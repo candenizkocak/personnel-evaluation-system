@@ -10,7 +10,7 @@ import com.workin.personnelevaluationsystem.repository.RoleRepository;
 import com.workin.personnelevaluationsystem.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // For transactional operations
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository; // Inject PermissionRepository
+    private final PermissionRepository permissionRepository;
 
     @Autowired
     public RoleServiceImpl(RoleRepository roleRepository, PermissionRepository permissionRepository) {
@@ -36,18 +36,16 @@ public class RoleServiceImpl implements RoleService {
                 .roleID(role.getRoleID())
                 .name(role.getName())
                 .description(role.getDescription())
-                // Convert associated permissions to their IDs for the DTO response
                 .permissionIDs(role.getPermissions().stream()
                         .map(Permission::getPermissionID)
                         .collect(Collectors.toSet()))
                 .build();
     }
 
-    // Helper to convert DTO to Entity, handling permission relationships
     private Role convertToEntity(RoleDTO roleDTO) {
         if (roleDTO == null) return null;
         Role role = Role.builder()
-                .roleID(roleDTO.getRoleID()) // ID might be null for creation
+                .roleID(roleDTO.getRoleID())
                 .name(roleDTO.getName())
                 .description(roleDTO.getDescription())
                 .build();
@@ -59,16 +57,14 @@ public class RoleServiceImpl implements RoleService {
                     .collect(Collectors.toSet());
             role.setPermissions(permissions);
         } else {
-            role.setPermissions(new HashSet<>()); // Ensure it's not null
+            role.setPermissions(new HashSet<>());
         }
         return role;
     }
 
-
     @Override
-    @Transactional // Ensure all operations within this method are part of a single transaction
+    @Transactional
     public RoleDTO createRole(RoleDTO roleDTO) {
-        // Check for duplicate role name before creating
         if (roleRepository.findByName(roleDTO.getName()).isPresent()) {
             throw new BadRequestException("Role with name '" + roleDTO.getName() + "' already exists.");
         }
@@ -95,11 +91,10 @@ public class RoleServiceImpl implements RoleService {
         Role roleToUpdate = roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found with ID: " + id));
 
-        // Check for duplicate name if name is changed and belongs to another role
         if (!roleToUpdate.getName().equals(roleDetailsDTO.getName())) {
             roleRepository.findByName(roleDetailsDTO.getName())
                     .ifPresent(r -> {
-                        if (!r.getRoleID().equals(id)) { // If existing role with this name has a different ID
+                        if (!r.getRoleID().equals(id)) {
                             throw new BadRequestException("Role with name '" + roleDetailsDTO.getName() + "' already exists.");
                         }
                     });
@@ -108,17 +103,15 @@ public class RoleServiceImpl implements RoleService {
         roleToUpdate.setName(roleDetailsDTO.getName());
         roleToUpdate.setDescription(roleDetailsDTO.getDescription());
 
-        // Update permissions: Fetch existing permissions and new ones, then update the set
         if (roleDetailsDTO.getPermissionIDs() != null) {
             Set<Permission> newPermissions = roleDetailsDTO.getPermissionIDs().stream()
                     .map(permId -> permissionRepository.findById(permId)
                             .orElseThrow(() -> new BadRequestException("Permission not found with ID: " + permId)))
                     .collect(Collectors.toSet());
-            roleToUpdate.setPermissions(newPermissions); // This will manage the join table
+            roleToUpdate.setPermissions(newPermissions);
         } else {
-            roleToUpdate.setPermissions(new HashSet<>()); // Clear permissions if none provided in DTO
+            roleToUpdate.setPermissions(new HashSet<>());
         }
-
 
         Role updatedRole = roleRepository.save(roleToUpdate);
         return convertToDto(updatedRole);
@@ -129,9 +122,11 @@ public class RoleServiceImpl implements RoleService {
         if (!roleRepository.existsById(id)) {
             throw new ResourceNotFoundException("Role not found with ID: " + id);
         }
-        // Note: If a role is referenced by a User, deleting it will throw a DataIntegrityViolationException.
-        // You might want to handle this explicitly, e.g., by disassociating users first,
-        // or by checking for associated users before deleting.
         roleRepository.deleteById(id);
+    }
+
+    @Override // <--- ADD THIS METHOD
+    public Optional<RoleDTO> getRoleByName(String name) {
+        return roleRepository.findByName(name).map(this::convertToDto);
     }
 }

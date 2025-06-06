@@ -24,6 +24,8 @@ public class UserCreateDTO {
     private String username;
 
     // Password is required for creation, optional for update (if not provided, keep current)
+    // For updates, the password field might be optional, and we only validate if it's provided.
+    // For creation, it's always required.
     @NotBlank(message = "Password cannot be blank")
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;

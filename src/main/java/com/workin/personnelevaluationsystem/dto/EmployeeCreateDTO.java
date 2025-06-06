@@ -1,18 +1,25 @@
 package com.workin.personnelevaluationsystem.dto;
 
-import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.PastOrPresent;
+import org.springframework.format.annotation.DateTimeFormat; // Import this
 
 import java.time.LocalDate;
+import java.util.Set; // Assuming this is still here for user roles, not strictly for employee
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EmployeeDTO {
+public class EmployeeCreateDTO {
 
     private Integer employeeID;
 
@@ -25,7 +32,7 @@ public class EmployeeDTO {
     private String lastName;
 
     @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Invalid email format") // Ensures it's a valid email structure
+    @Email(message = "Invalid email format")
     @Size(max = 100, message = "Email cannot exceed 100 characters")
     private String email;
 
@@ -33,14 +40,14 @@ public class EmployeeDTO {
     private String phone;
 
     @NotNull(message = "Hire date cannot be null")
-    @PastOrPresent(message = "Hire date cannot be in the future") // Ensures hire date is not in the future
+    @PastOrPresent(message = "Hire date cannot be in the future")
+    @DateTimeFormat(pattern = "yyyy-MM-dd") // <--- ADD THIS LINE
     private LocalDate hireDate;
 
     @NotNull(message = "Position ID cannot be null")
     @Min(value = 1, message = "Position ID must be a positive integer")
     private Integer positionID;
 
-    // Manager ID can be null if the employee has no manager (e.g., CEO)
     @Min(value = 1, message = "Manager ID must be a positive integer")
     private Integer managerID;
 

@@ -12,7 +12,7 @@ import com.workin.personnelevaluationsystem.repository.RoleRepository;
 import com.workin.personnelevaluationsystem.repository.UserRepository;
 import com.workin.personnelevaluationsystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Import
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final EmployeeRepository employeeRepository;
     private final RoleRepository roleRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder; // Inject password encoder
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
@@ -64,17 +64,17 @@ public class UserServiceImpl implements UserService {
     private User convertToEntity(UserCreateDTO userCreateDTO) {
         if (userCreateDTO == null) return null;
 
-        // Check if username already exists for new user or if username is changed
+        // Check for duplicate username for new user or if username is changed
         if (userCreateDTO.getUserID() == null || !userRepository.findById(userCreateDTO.getUserID())
                 .map(User::getUsername)
-                .orElse("")
+                .orElse("") // Use empty string for null safety
                 .equals(userCreateDTO.getUsername())) {
             if (userRepository.findByUsername(userCreateDTO.getUsername()).isPresent()) {
                 throw new BadRequestException("Username '" + userCreateDTO.getUsername() + "' already exists.");
             }
         }
 
-        // Check if employee already has a user account
+        // Check if employee already has a user account (only if a new employeeID is being linked or changed)
         if (userCreateDTO.getEmployeeID() != null) {
             userRepository.findByEmployee_EmployeeID(userCreateDTO.getEmployeeID())
                     .ifPresent(u -> {
@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
                 .userID(userCreateDTO.getUserID())
                 .username(userCreateDTO.getUsername())
                 .passwordHash(bCryptPasswordEncoder.encode(userCreateDTO.getPassword())) // Hash the password
-                .lastLogin(null) // Not set on creation/update via DTO
+                .lastLogin(null) // Not set on creation/update via DTO, set by system on login
                 .isLocked(userCreateDTO.getIsLocked())
                 .build();
 
@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
                     .collect(Collectors.toSet());
             user.setRoles(roles);
         } else {
-            user.setRoles(new HashSet<>()); // Ensure roles set is not null
+            user.setRoles(new HashSet<>()); // Ensure roles set is not null if no roles provided
         }
         return user;
     }
@@ -159,7 +159,7 @@ public class UserServiceImpl implements UserService {
             userToUpdate.setPasswordHash(bCryptPasswordEncoder.encode(userUpdateDTO.getPassword()));
         }
 
-        userToUpdate.setIsLocked(userUpdateDTO.getIsLocked());
+        userToUpdate.setIsLocked(userUpdateDTO.getIsLocked() != null ? userUpdateDTO.getIsLocked() : userToUpdate.getIsLocked()); // Update isLocked if provided
 
         // Update Employee relationship
         if (userUpdateDTO.getEmployeeID() != null) {
@@ -175,18 +175,20 @@ public class UserServiceImpl implements UserService {
                     .orElseThrow(() -> new BadRequestException("Employee not found with ID: " + userUpdateDTO.getEmployeeID()));
             userToUpdate.setEmployee(newEmployee);
         } else {
-            userToUpdate.setEmployee(null);
+            userToUpdate.setEmployee(null); // Clear association if ID is null
         }
 
         // Update Roles relationship
-        if (userUpdateDTO.getRoleIDs() != null) {
+        if (userUpdateDTO.getRoleIDs() != null) { // If roleIDs is null, it means no change, if empty, it means remove all
             Set<Role> newRoles = userUpdateDTO.getRoleIDs().stream()
                     .map(roleId -> roleRepository.findById(roleId)
                             .orElseThrow(() -> new BadRequestException("Role not found with ID: " + roleId)))
                     .collect(Collectors.toSet());
             userToUpdate.setRoles(newRoles);
         } else {
-            userToUpdate.setRoles(new HashSet<>());
+            // If userUpdateDTO.getRoleIDs() is null, keep existing roles.
+            // If you want to allow clearing roles by sending an empty set, ensure logic handles it.
+            // Current logic for new roles already creates new HashSet if DTO list is empty.
         }
 
         User updatedUser = userRepository.save(userToUpdate);
@@ -198,6 +200,12 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User not found with ID: " + id);
         }
+        // IMPORTANT: Consider cascading deletes or checks here.
+        // If a user is referenced by anything else (e.g., PerformanceReviews.EvaluatorID, Feedback.SenderID/ReceiverID, EmployeeCompetencies.AssessedBy),
+        // deleting them directly will cause a DataIntegrityViolationException.
+        // For a robust system, you'd implement logic to:
+        // 1. Soft-delete (set them inactive) instead of deleting.
+        // 2. Nullify references or handle dependent records.
         userRepository.deleteById(id);
     }
 }

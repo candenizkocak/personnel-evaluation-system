@@ -1,12 +1,13 @@
 package com.workin.personnelevaluationsystem.controller;
 
-import com.workin.personnelevaluationsystem.dto.EmployeeDTO;
+import com.workin.personnelevaluationsystem.dto.EmployeeCreateDTO; // Import
+import com.workin.personnelevaluationsystem.dto.EmployeeResponseDTO; // Import
 import com.workin.personnelevaluationsystem.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid; // Import @Valid
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -22,27 +23,27 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<EmployeeDTO> createEmployee(@Valid @RequestBody EmployeeDTO employeeDTO) { // Added @Valid
-        EmployeeDTO createdEmployee = employeeService.createEmployee(employeeDTO);
+    public ResponseEntity<EmployeeResponseDTO> createEmployee(@Valid @RequestBody EmployeeCreateDTO employeeDTO) { // Accepts CreateDTO
+        EmployeeResponseDTO createdEmployee = employeeService.createEmployee(employeeDTO); // Returns ResponseDTO
         return new ResponseEntity<>(createdEmployee, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Integer id) {
+    public ResponseEntity<EmployeeResponseDTO> getEmployeeById(@PathVariable Integer id) { // Returns ResponseDTO
         return employeeService.getEmployeeById(id)
                 .map(employeeDTO -> new ResponseEntity<>(employeeDTO, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @GetMapping
-    public ResponseEntity<List<EmployeeDTO>> getAllEmployees() {
-        List<EmployeeDTO> employees = employeeService.getAllEmployees();
+    public ResponseEntity<List<EmployeeResponseDTO>> getAllEmployees() { // Returns List of ResponseDTOs
+        List<EmployeeResponseDTO> employees = employeeService.getAllEmployees();
         return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeDTO> updateEmployee(@PathVariable Integer id, @Valid @RequestBody EmployeeDTO employeeDetailsDTO) { // Added @Valid
-        EmployeeDTO updatedEmployee = employeeService.updateEmployee(id, employeeDetailsDTO);
+    public ResponseEntity<EmployeeResponseDTO> updateEmployee(@PathVariable Integer id, @Valid @RequestBody EmployeeCreateDTO employeeDetailsDTO) { // Accepts CreateDTO
+        EmployeeResponseDTO updatedEmployee = employeeService.updateEmployee(id, employeeDetailsDTO); // Returns ResponseDTO
         return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
     }
 
