@@ -2,12 +2,13 @@ package com.workin.personnelevaluationsystem.controller;
 
 import com.workin.personnelevaluationsystem.dto.PerformanceReviewCreateDTO;
 import com.workin.personnelevaluationsystem.dto.PerformanceReviewResponseDTO;
+import com.workin.personnelevaluationsystem.dto.ReviewSubmissionDTO; // Import the new DTO
 import com.workin.personnelevaluationsystem.service.PerformanceReviewService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -41,16 +42,34 @@ public class PerformanceReviewController {
         return new ResponseEntity<>(reviews, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PerformanceReviewResponseDTO> updatePerformanceReview(@PathVariable Integer id, @Valid @RequestBody PerformanceReviewCreateDTO reviewDetailsDTO) {
-        PerformanceReviewResponseDTO updatedReview = reviewService.updatePerformanceReview(id, reviewDetailsDTO);
-        return new ResponseEntity<>(updatedReview, HttpStatus.OK);
+    /**
+     * Replaces the generic PUT mapping with specific actions for an API.
+     * This endpoint saves the progress of a review without finalizing it.
+     */
+    @PutMapping("/{id}/draft")
+    public ResponseEntity<Void> saveReviewDraft(@PathVariable Integer id, @Valid @RequestBody ReviewSubmissionDTO submissionDTO) {
+        reviewService.saveReviewDraft(id, submissionDTO);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content is appropriate for a save action
     }
+
+    /**
+     * This endpoint finalizes and submits a review, calculating its score.
+     */
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<PerformanceReviewResponseDTO> submitFinalReview(@PathVariable Integer id, @Valid @RequestBody ReviewSubmissionDTO submissionDTO) {
+        PerformanceReviewResponseDTO finalReview = reviewService.submitFinalReview(id, submissionDTO);
+        return new ResponseEntity<>(finalReview, HttpStatus.OK);
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePerformanceReview(@PathVariable Integer id) {
-        reviewService.deletePerformanceReview(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        // Note: The service layer currently doesn't have a delete method.
+        // If you need API deletion, you must add `void deletePerformanceReview(Integer id);`
+        // back to the service interface and implement it.
+        // For now, we'll comment this out as it's not implemented in the service.
+        // reviewService.deletePerformanceReview(id);
+        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 
     @GetMapping("/employee/{employeeId}")

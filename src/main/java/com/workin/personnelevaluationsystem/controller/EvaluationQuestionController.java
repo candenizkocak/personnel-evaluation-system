@@ -2,16 +2,20 @@ package com.workin.personnelevaluationsystem.controller;
 
 import com.workin.personnelevaluationsystem.dto.EvaluationQuestionDTO;
 import com.workin.personnelevaluationsystem.service.EvaluationQuestionService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/v1/evaluation-questions")
+// Change to @Controller since it will now handle form posts and redirects
+@Controller
+@RequestMapping("/evaluation-questions")
 public class EvaluationQuestionController {
 
     private final EvaluationQuestionService questionService;
@@ -21,16 +25,27 @@ public class EvaluationQuestionController {
         this.questionService = questionService;
     }
 
-    // Endpoint for creating a question for a specific form (nested path)
-    @PostMapping("/form/{formId}")
-    public ResponseEntity<EvaluationQuestionDTO> createEvaluationQuestionForForm(
-            @PathVariable Integer formId,
-            @Valid @RequestBody EvaluationQuestionDTO questionDTO) {
-        EvaluationQuestionDTO createdQuestion = questionService.createEvaluationQuestion(formId, questionDTO);
-        return new ResponseEntity<>(createdQuestion, HttpStatus.CREATED);
+    // This endpoint is for the new update functionality
+    @PostMapping("/update/{questionId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")
+    public String updateQuestion(@PathVariable Integer questionId,
+                                 @RequestParam("formId") Integer formId, // Get formId from a hidden input
+                                 @Valid @ModelAttribute("question") EvaluationQuestionDTO questionDTO,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            questionService.updateEvaluationQuestion(questionId, questionDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Question updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating question: " + e.getMessage());
+        }
+        return "redirect:/evaluation-forms/edit/" + formId;
     }
 
+    // --- The following methods can be kept for potential API use or removed if not needed ---
+    // For simplicity, we will keep them as a RESTful API part of the controller.
+
     @GetMapping("/{id}")
+    @ResponseBody
     public ResponseEntity<EvaluationQuestionDTO> getEvaluationQuestionById(@PathVariable Integer id) {
         return questionService.getEvaluationQuestionById(id)
                 .map(questionDTO -> new ResponseEntity<>(questionDTO, HttpStatus.OK))
@@ -38,20 +53,9 @@ public class EvaluationQuestionController {
     }
 
     @GetMapping("/form/{formId}")
+    @ResponseBody
     public ResponseEntity<List<EvaluationQuestionDTO>> getAllEvaluationQuestionsByFormId(@PathVariable Integer formId) {
         List<EvaluationQuestionDTO> questions = questionService.getAllEvaluationQuestionsByFormId(formId);
         return new ResponseEntity<>(questions, HttpStatus.OK);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<EvaluationQuestionDTO> updateEvaluationQuestion(@PathVariable Integer id, @Valid @RequestBody EvaluationQuestionDTO questionDetailsDTO) {
-        EvaluationQuestionDTO updatedQuestion = questionService.updateEvaluationQuestion(id, questionDetailsDTO);
-        return new ResponseEntity<>(updatedQuestion, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEvaluationQuestion(@PathVariable Integer id) {
-        questionService.deleteEvaluationQuestion(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

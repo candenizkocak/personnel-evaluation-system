@@ -16,7 +16,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Keep this, it enables @PreAuthorize
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
@@ -56,23 +56,27 @@ public class SecurityConfig {
                         .requestMatchers("/", "/home", "/login", "/register", "/error").permitAll()
                         .requestMatchers("/WEB-INF/**").permitAll()
 
-                        // *** THIS IS THE CRITICAL ADDITION ***
                         // Authorize all web controller paths that require authentication.
                         // The @PreAuthorize annotation on each controller method will handle the specific role checks.
                         .requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/departments/**").authenticated()
                         .requestMatchers("/positions/**").authenticated()
                         .requestMatchers("/employees/**").authenticated()
-                        .requestMatchers("/evaluation-forms/**").authenticated() // This covers /delete/{id}
+                        .requestMatchers("/evaluation-forms/**").authenticated()
                         .requestMatchers("/evaluation-periods/**").authenticated()
                         .requestMatchers("/evaluation-types/**").authenticated()
                         .requestMatchers("/question-types/**").authenticated()
+                        .requestMatchers("/performance-reviews/**").authenticated()
                         .requestMatchers("/permissions/**").authenticated()
                         .requestMatchers("/roles/**").authenticated()
                         .requestMatchers("/users/**").authenticated()
-                        // Add other web controller base paths here as you build them
 
-                        // API endpoints (already configured, no changes needed here)
+                        // *** ADDED RULES FOR GOAL MANAGEMENT ***
+                        .requestMatchers("/goal-types/**").authenticated()
+                        .requestMatchers("/goal-statuses/**").authenticated()
+                        .requestMatchers("/goals/**").authenticated()
+
+                        // API endpoints
                         .requestMatchers("/api/v1/**").authenticated()
 
                         // Default rule: any other request must be authenticated.

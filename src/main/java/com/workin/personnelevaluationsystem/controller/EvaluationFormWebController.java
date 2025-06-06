@@ -81,7 +81,8 @@ public class EvaluationFormWebController {
     public String showEditForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
         return evaluationFormService.getEvaluationFormById(id).map(form -> {
             model.addAttribute("evaluationForm", form);
-            model.addAttribute("questionTypes", questionTypeService.getAllQuestionTypes());
+            model.addAttribute("evaluationTypes", evaluationTypeService.getAllEvaluationTypes()); // For the details form
+            model.addAttribute("questionTypes", questionTypeService.getAllQuestionTypes()); // For the add question form
             model.addAttribute("newQuestion", new EvaluationQuestionDTO());
             model.addAttribute("pageTitle", "Manage Form: " + form.getTitle());
             return "evaluation-forms/form-manage-questions";
@@ -90,6 +91,26 @@ public class EvaluationFormWebController {
             return "redirect:/evaluation-forms";
         });
     }
+
+    // New endpoint to update the main form details
+    @PostMapping("/update-details/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")
+    public String updateFormDetails(@PathVariable Integer id, @Valid @ModelAttribute("evaluationForm") EvaluationFormDTO formDTO, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            // If validation fails, redirect back with the errors
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.evaluationForm", bindingResult);
+            redirectAttributes.addFlashAttribute("evaluationForm", formDTO);
+            return "redirect:/evaluation-forms/edit/" + id;
+        }
+        try {
+            evaluationFormService.updateEvaluationForm(id, formDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Form details updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating details: " + e.getMessage());
+        }
+        return "redirect:/evaluation-forms/edit/" + id;
+    }
+
 
     @PostMapping("/{formId}/questions/add")
     @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST')")

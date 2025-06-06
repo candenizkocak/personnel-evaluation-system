@@ -17,15 +17,18 @@ import java.math.BigDecimal;
 @Builder
 public class ReviewResponseDTO {
 
-    private Integer responseID; // Will be null for new responses
+    private Integer responseID;
 
     @NotNull(message = "Question ID cannot be null")
     @Min(value = 1, message = "Question ID must be a positive integer")
-    private Integer questionID; // Foreign key to EvaluationQuestion
+    private Integer questionID;
 
-    @Size(max = 4000, message = "Response text cannot exceed 4000 characters") // Max length for NVARCHAR(MAX) if it was restricted, though MAX is very large.
+    // Add this field to hold the question text for display on the form
+    private String questionText;
+
+    @Size(max = 4000, message = "Response text cannot exceed 4000 characters")
     private String responseText;
 
-    @DecimalMin(value = "0.00", message = "Numeric response cannot be negative") // Min value for score
-    private BigDecimal numericResponse; // Can be null if question is text-based
+    @DecimalMin(value = "0.00", message = "Numeric response cannot be negative")
+    private BigDecimal numericResponse;
 }
