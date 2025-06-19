@@ -115,7 +115,12 @@ public class EvaluationTypeWebController {
             evaluationTypeService.deleteEvaluationType(id);
             redirectAttributes.addFlashAttribute("successMessage", "Evaluation Type deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting evaluation type: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting evaluation type: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/evaluation-types";
     }

@@ -76,7 +76,12 @@ public class FeedbackTypeWebController {
             feedbackTypeService.deleteFeedbackType(id);
             redirectAttributes.addFlashAttribute("successMessage", "Feedback Type deleted successfully.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting type: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting feedback type: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/feedback-types";
     }

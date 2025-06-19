@@ -116,7 +116,12 @@ public class EvaluationPeriodWebController {
             evaluationPeriodService.deleteEvaluationPeriod(id);
             redirectAttributes.addFlashAttribute("successMessage", "Evaluation Period deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting evaluation period: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting evaluation period: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/evaluation-periods";
     }

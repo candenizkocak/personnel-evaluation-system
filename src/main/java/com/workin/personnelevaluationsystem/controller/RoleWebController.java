@@ -124,7 +124,12 @@ public class RoleWebController {
             roleService.deleteRole(id);
             redirectAttributes.addFlashAttribute("successMessage", "Role deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting role: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting role: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/roles";
     }

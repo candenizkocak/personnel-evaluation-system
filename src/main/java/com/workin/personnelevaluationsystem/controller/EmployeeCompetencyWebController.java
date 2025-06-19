@@ -89,7 +89,12 @@ public class EmployeeCompetencyWebController {
             employeeCompetencyService.deleteEmployeeCompetency(employeeId, competencyId, assessmentDate);
             redirectAttributes.addFlashAttribute("successMessage", "Assessment deleted successfully.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting assessment: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting assessment: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/employee-competencies";
     }

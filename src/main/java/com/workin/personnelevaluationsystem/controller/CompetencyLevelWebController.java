@@ -71,9 +71,13 @@ public class CompetencyLevelWebController {
             levelService.deleteCompetencyLevel(levelId);
             redirectAttributes.addFlashAttribute("successMessage", "Level deleted successfully.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting level: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting level: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/competency-levels/manage/" + competencyId;
     }
 }
-

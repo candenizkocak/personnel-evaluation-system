@@ -137,7 +137,12 @@ public class EvaluationFormWebController {
             questionService.deleteEvaluationQuestion(questionId);
             redirectAttributes.addFlashAttribute("successMessage", "Question deleted successfully.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting question: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting question: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/evaluation-forms/edit/" + formId;
     }
@@ -149,7 +154,12 @@ public class EvaluationFormWebController {
             evaluationFormService.deleteEvaluationForm(id);
             redirectAttributes.addFlashAttribute("successMessage", "Evaluation Form deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting form: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting form: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/evaluation-forms";
     }

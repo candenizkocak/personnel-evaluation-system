@@ -116,7 +116,12 @@ public class PermissionWebController {
             permissionService.deletePermission(id);
             redirectAttributes.addFlashAttribute("successMessage", "Permission deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting permission: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting permission: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/permissions";
     }

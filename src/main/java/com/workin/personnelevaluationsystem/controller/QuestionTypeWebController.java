@@ -115,7 +115,12 @@ public class QuestionTypeWebController {
             questionTypeService.deleteQuestionType(id);
             redirectAttributes.addFlashAttribute("successMessage", "Question Type deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting question type: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting question type: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/question-types";
     }

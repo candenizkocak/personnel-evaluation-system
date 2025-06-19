@@ -80,7 +80,12 @@ public class GoalTypeWebController {
             goalTypeService.deleteGoalType(id);
             redirectAttributes.addFlashAttribute("successMessage", "Goal Type deleted successfully.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting Goal Type: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting Goal Type: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/goal-types";
     }

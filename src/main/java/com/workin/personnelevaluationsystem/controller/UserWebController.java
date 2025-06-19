@@ -187,7 +187,12 @@ public class UserWebController {
             userService.deleteUser(id);
             redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting user: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting user: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/users";
     }

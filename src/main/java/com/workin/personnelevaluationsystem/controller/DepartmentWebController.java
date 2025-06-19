@@ -122,7 +122,12 @@ public class DepartmentWebController {
             departmentService.deleteDepartment(id);
             redirectAttributes.addFlashAttribute("successMessage", "Department deleted successfully!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting department: " + e.getMessage());
+            // Log the actual error for administrators/developers
+            System.err.println("Error deleting department: " + e.getMessage());
+            e.printStackTrace();
+
+            // Show user-friendly message
+            redirectAttributes.addFlashAttribute("errorMessage", "Can't complete the operation as the entity is in active use.");
         }
         return "redirect:/departments";
     }
