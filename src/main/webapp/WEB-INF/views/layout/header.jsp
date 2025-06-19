@@ -148,6 +148,7 @@
                         <li><a href="/evaluation-types">Types</a></li>
                         <li><a href="/evaluation-forms">Forms</a></li>
                         <li><a href="/performance-reviews">Reviews</a></li>
+                        <li><a href="/performance-reviews/average-scores">Average Scores Chart</a></li>
                     </ul>
                 </li>
                 <li>

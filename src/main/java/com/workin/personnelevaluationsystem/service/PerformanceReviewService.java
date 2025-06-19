@@ -1,5 +1,6 @@
 package com.workin.personnelevaluationsystem.service;
 
+import com.workin.personnelevaluationsystem.dto.EmployeeAverageScoreDTO; // Import new DTO
 import com.workin.personnelevaluationsystem.dto.PerformanceReviewCreateDTO;
 import com.workin.personnelevaluationsystem.dto.PerformanceReviewResponseDTO;
 import com.workin.personnelevaluationsystem.dto.ReviewSubmissionDTO;
@@ -12,10 +13,11 @@ public interface PerformanceReviewService {
     Optional<PerformanceReviewResponseDTO> getPerformanceReviewById(Integer id);
     List<PerformanceReviewResponseDTO> getAllPerformanceReviews();
 
-    // Replaces the generic update with specific actions
     void saveReviewDraft(Integer reviewId, ReviewSubmissionDTO submissionDTO);
     PerformanceReviewResponseDTO submitFinalReview(Integer reviewId, ReviewSubmissionDTO submissionDTO);
 
     List<PerformanceReviewResponseDTO> getReviewsByEmployee(Integer employeeId);
     List<PerformanceReviewResponseDTO> getReviewsByEvaluator(Integer evaluatorId);
+
+    List<EmployeeAverageScoreDTO> getEmployeeAverageScores();
 }

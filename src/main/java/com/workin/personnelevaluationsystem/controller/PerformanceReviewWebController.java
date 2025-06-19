@@ -1,9 +1,6 @@
 package com.workin.personnelevaluationsystem.controller;
 
-import com.workin.personnelevaluationsystem.dto.PerformanceReviewCreateDTO;
-import com.workin.personnelevaluationsystem.dto.PerformanceReviewResponseDTO;
-import com.workin.personnelevaluationsystem.dto.PerformanceReviewStartDTO;
-import com.workin.personnelevaluationsystem.dto.ReviewSubmissionDTO;
+import com.workin.personnelevaluationsystem.dto.*;
 import com.workin.personnelevaluationsystem.model.User;
 import com.workin.personnelevaluationsystem.service.*;
 import jakarta.validation.Valid;
@@ -141,5 +138,14 @@ public class PerformanceReviewWebController {
         model.addAttribute("reviews", myReviews);
         model.addAttribute("pageTitle", "My Performance Reviews");
         return "performance-reviews/my-list";
+    }
+
+    @GetMapping("/average-scores")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')") // Adjust roles as needed
+    public String showAverageScoresChart(Model model) {
+        List<EmployeeAverageScoreDTO> averageScores = reviewService.getEmployeeAverageScores();
+        model.addAttribute("averageScoresData", averageScores);
+        model.addAttribute("pageTitle", "Employee Average Scores");
+        return "performance-reviews/average-scores-chart";
     }
 }

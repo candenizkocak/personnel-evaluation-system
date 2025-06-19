@@ -4,6 +4,7 @@ import com.workin.personnelevaluationsystem.dto.PerformanceReviewCreateDTO;
 import com.workin.personnelevaluationsystem.dto.PerformanceReviewResponseDTO;
 import com.workin.personnelevaluationsystem.dto.ReviewResponseDTO;
 import com.workin.personnelevaluationsystem.dto.ReviewSubmissionDTO;
+import com.workin.personnelevaluationsystem.dto.EmployeeAverageScoreDTO; // Import new DTO
 import com.workin.personnelevaluationsystem.exception.BadRequestException;
 import com.workin.personnelevaluationsystem.exception.ResourceNotFoundException;
 import com.workin.personnelevaluationsystem.model.*;
@@ -12,6 +13,7 @@ import com.workin.personnelevaluationsystem.service.PerformanceReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager; // For custom query if needed
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,18 +32,21 @@ public class PerformanceReviewServiceImpl implements PerformanceReviewService {
     private final EvaluationPeriodRepository periodRepository;
     private final EvaluationFormRepository formRepository;
     private final ReviewResponseRepository reviewResponseRepository;
+    private final EntityManager entityManager; // Inject EntityManager
 
     @Autowired
     public PerformanceReviewServiceImpl(PerformanceReviewRepository reviewRepository,
                                         EmployeeRepository employeeRepository,
                                         EvaluationPeriodRepository periodRepository,
                                         EvaluationFormRepository formRepository,
-                                        ReviewResponseRepository reviewResponseRepository) {
+                                        ReviewResponseRepository reviewResponseRepository,
+                                        EntityManager entityManager) { // Add EntityManager to constructor
         this.reviewRepository = reviewRepository;
         this.employeeRepository = employeeRepository;
         this.periodRepository = periodRepository;
         this.formRepository = formRepository;
         this.reviewResponseRepository = reviewResponseRepository;
+        this.entityManager = entityManager;
     }
 
     private ReviewResponseDTO convertResponseToDto(ReviewResponse response) {
@@ -198,5 +203,46 @@ public class PerformanceReviewServiceImpl implements PerformanceReviewService {
         return reviewRepository.findByEvaluator_EmployeeID(evaluatorId).stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true) // Good practice for read operations
+    public List<EmployeeAverageScoreDTO> getEmployeeAverageScores() {
+        // Fetch all reviews that are "Submitted" and have a finalScore
+        List<PerformanceReview> submittedReviews = reviewRepository.findAll().stream()
+                .filter(review -> "Submitted".equalsIgnoreCase(review.getStatus()) && review.getFinalScore() != null)
+                .collect(Collectors.toList());
+
+        if (submittedReviews.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Group reviews by employee and calculate average scores
+        Map<Employee, List<PerformanceReview>> reviewsByEmployee = submittedReviews.stream()
+                .collect(Collectors.groupingBy(PerformanceReview::getEmployee));
+
+        List<EmployeeAverageScoreDTO> averageScores = new ArrayList<>();
+        for (Map.Entry<Employee, List<PerformanceReview>> entry : reviewsByEmployee.entrySet()) {
+            Employee employee = entry.getKey();
+            List<PerformanceReview> employeeReviews = entry.getValue();
+
+            if (employee == null || employeeReviews.isEmpty()) continue; // Skip if no employee or no reviews for employee
+
+            BigDecimal sumOfScores = employeeReviews.stream()
+                    .map(PerformanceReview::getFinalScore)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal average = sumOfScores.divide(new BigDecimal(employeeReviews.size()), 2, RoundingMode.HALF_UP);
+
+            averageScores.add(new EmployeeAverageScoreDTO(
+                    employee.getEmployeeID(),
+                    employee.getFirstName() + " " + employee.getLastName(),
+                    average,
+                    employeeReviews.size()
+            ));
+        }
+        // Sort by average score descending for better chart visualization (optional)
+        averageScores.sort((s1, s2) -> s2.getAverageScore().compareTo(s1.getAverageScore()));
+        return averageScores;
     }
 }
