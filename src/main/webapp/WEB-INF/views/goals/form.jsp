@@ -53,10 +53,6 @@
                 <c:forEach var="status" items="${goalStatuses}"><form:option value="${status.statusID}" label="${status.name}"/></c:forEach>
             </form:select>
         </div>
-        <div class="form-group col-md-6">
-            <label>Progress (${goal.progress}%)</label>
-            <form:input type="range" path="progress" class="form-control-range" min="0" max="100"/>
-        </div>
     </div>
 
     <button type="submit" class="btn btn-success">Save Goal</button>

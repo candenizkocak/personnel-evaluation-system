@@ -31,6 +31,8 @@ public class CompetencyDTO {
     @Min(value = 1, message = "Category ID must be a positive integer")
     private Integer categoryID; // Foreign key to CompetencyCategory
 
+    private String categoryName; // Display name of the category
+
     @Valid // For nested levels
     private List<CompetencyLevelDTO> levels; // Optional: for nested create/update
 }

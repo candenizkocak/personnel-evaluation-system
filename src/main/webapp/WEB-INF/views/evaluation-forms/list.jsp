@@ -37,7 +37,7 @@
             <th>ID</th>
             <th>Title</th>
             <th>Description</th>
-            <th>Type ID</th> <%-- Can add type name later if needed --%>
+            <th>Type</th> <%-- CHANGED FROM Type ID --%>
             <th>Active</th>
             <th>Questions Count</th>
             <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
@@ -53,7 +53,7 @@
                         <td>${form.formID}</td>
                         <td>${form.title}</td>
                         <td>${form.description}</td>
-                        <td>${form.typeID}</td>
+                        <td>${form.typeName}</td> <%-- CHANGED FROM typeID --%>
                         <td>
                             <c:if test="${form.isActive}">Yes</c:if>
                             <c:if test="${not form.isActive}">No</c:if>

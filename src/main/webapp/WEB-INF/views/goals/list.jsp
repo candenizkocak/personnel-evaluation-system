@@ -9,22 +9,23 @@
     <table class="table table-hover">
         <thead class="thead-light">
         <tr>
-            <th>Title</th><th>Employee</th><th>Type</th><th>Status</th><th>Target Date</th><th>Progress</th><th>Actions</th>
+            <th>Title</th><th>Employee ID</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Target Date</th>
+            <%-- REMOVED Progress Header --%>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
         <c:forEach var="goal" items="${goals}">
             <tr>
                 <td>${goal.title}</td>
-                <td>${goal.employeeID}</td> <%-- Enrich later with employee name --%>
-                <td>${goal.goalTypeID}</td> <%-- Enrich later --%>
-                <td>${goal.statusID}</td> <%-- Enrich later --%>
+                <td>${goal.employeeID}</td>
+                <td>${goal.goalTypeName}</td>
+                <td><span class="badge badge-info">${goal.statusName}</span></td>
                 <td>${goal.targetDate}</td>
-                <td>
-                    <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: ${goal.progress}%;" aria-valuenow="${goal.progress}" aria-valuemin="0" aria-valuemax="100">${goal.progress}%</div>
-                    </div>
-                </td>
+                    <%-- REMOVED Progress Column Data --%>
                 <td>
                     <a href="/goals/edit/${goal.goalID}" class="btn btn-sm btn-info">Update</a>
                     <a href="/goals/delete/${goal.goalID}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>

@@ -58,7 +58,7 @@
 
     <div class="form-group">
         <label for="phone">Phone</label>
-        <form:input path="phone" class="form-control" id="phone" />
+        <form:input type="tel" path="phone" class="form-control" id="phone" pattern="[0-9\-]+" title="Please enter only numbers and dashes."/> <%-- MODIFIED --%>
         <form:errors path="phone" cssClass="text-danger" />
     </div>
 

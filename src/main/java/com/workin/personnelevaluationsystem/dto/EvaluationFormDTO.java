@@ -30,6 +30,8 @@ public class EvaluationFormDTO {
     @Min(value = 1, message = "Evaluation Type ID must be a positive integer")
     private Integer typeID;
 
+    private String typeName; // Added for displaying the type name
+
     @NotNull(message = "IsActive status cannot be null")
     private Boolean isActive;
 

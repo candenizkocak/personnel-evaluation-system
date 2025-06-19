@@ -6,13 +6,13 @@
 <c:if test="${not empty errorMessage}"><div class="alert alert-danger">${errorMessage}</div></c:if>
 <a href="/competencies/new" class="btn btn-primary mb-3">Add Competency</a>
 <table class="table table-hover">
-    <thead class="thead-light"><tr><th>ID</th><th>Name</th><th>Category ID</th><th>Actions</th></tr></thead>
+    <thead class="thead-light"><tr><th>ID</th><th>Name</th><th>Category</th><th>Actions</th></tr></thead> <%-- MODIFIED --%>
     <tbody>
     <c:forEach var="item" items="${competencies}">
         <tr>
             <td>${item.competencyID}</td>
             <td>${item.name}</td>
-            <td>${item.categoryID}</td>
+            <td>${item.categoryName}</td> <%-- MODIFIED --%>
             <td>
                 <a href="/competency-levels/manage/${item.competencyID}" class="btn btn-sm btn-secondary">Manage Levels</a>
                 <a href="/competencies/edit/${item.competencyID}" class="btn btn-sm btn-info">Edit</a>

@@ -45,6 +45,7 @@ public class EvaluationFormServiceImpl implements EvaluationFormService {
                 .title(form.getTitle())
                 .description(form.getDescription())
                 .typeID(form.getEvaluationType() != null ? form.getEvaluationType().getTypeID() : null)
+                .typeName(form.getEvaluationType() != null ? form.getEvaluationType().getName() : null)
                 .isActive(form.getIsActive())
                 .questions(questionDTOs) // Set the questions for display
                 .build();

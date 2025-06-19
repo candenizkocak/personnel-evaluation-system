@@ -48,6 +48,7 @@ public class CompetencyServiceImpl implements CompetencyService {
                 .name(competency.getName())
                 .description(competency.getDescription())
                 .categoryID(competency.getCategory() != null ? competency.getCategory().getCategoryID() : null)
+                .categoryName(competency.getCategory() != null ? competency.getCategory().getName() : null)
                 .levels(levelDTOs)
                 .build();
     }

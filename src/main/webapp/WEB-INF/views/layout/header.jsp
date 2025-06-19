@@ -100,8 +100,6 @@
                         </a>
                         <div class="dropdown-menu" aria-labelledby="adminDropdown">
                             <a class="dropdown-item" href="/users">Manage Users</a>
-                            <a class="dropdown-item" href="/roles">Manage Roles</a>
-                            <a class="dropdown-item" href="/permissions">Manage Permissions</a>
                         </div>
                     </li>
                 </sec:authorize>

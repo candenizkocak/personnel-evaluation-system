@@ -3,6 +3,8 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<%-- REMOVED the problematic json taglib --%>
+
 <h2 class="mb-4">${pageTitle}</h2>
 <form:form action="/employee-competencies/save" method="post" modelAttribute="assessment">
     <form:errors path="*" cssClass="alert alert-danger" element="div"/>
@@ -17,19 +19,17 @@
         </div>
         <div class="form-group col-md-6">
             <label>Competency</label>
-            <form:select path="competencyID" class="form-control" required="true">
+            <form:select path="competencyID" id="competencySelect" class="form-control" required="true">
                 <option value="">-- Select Competency --</option>
-                <c:forEach var="comp" items="${competencies}"><form:option value="${comp.competencyID}" label="${comp.name}"/></c:forEach>
+                <c:forEach var="comp" items="${competenciesWithLevels}"><form:option value="${comp.competencyID}" label="${comp.name}"/></c:forEach>
             </form:select>
         </div>
     </div>
 
     <div class="form-group">
         <label>Competency Level</label>
-        <form:select path="levelID" class="form-control" required="true">
-            <option value="">-- Select Level --</option>
-            <%-- This is a simple implementation. A better UI would filter this with JavaScript. --%>
-            <c:forEach var="level" items="${levels}"><form:option value="${level.levelID}" label="Level ${level.level} - ${level.description}"/></c:forEach>
+        <form:select path="levelID" id="levelSelect" class="form-control" required="true">
+            <option value="">-- Select a Competency First --</option>
         </form:select>
     </div>
 
@@ -50,5 +50,41 @@
     <a href="/employee-competencies" class="btn btn-secondary">Cancel</a>
     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 </form:form>
+
+<script>
+    // Store competency data (including levels) in a JavaScript variable using JSTL
+    const competenciesData = {
+        <c:forEach var="comp" items="${competenciesWithLevels}" varStatus="loop">
+        "${comp.competencyID}": [
+            <c:forEach var="level" items="${comp.levels}" varStatus="levelLoop">
+            { id: "${level.levelID}", text: "Level ${level.level} - ${level.description}" }
+            ${!levelLoop.last ? ',' : ''}
+            </c:forEach>
+        ]
+        ${!loop.last ? ',' : ''}
+        </c:forEach>
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const competencySelect = document.getElementById('competencySelect');
+        const levelSelect = document.getElementById('levelSelect');
+
+        competencySelect.addEventListener('change', function() {
+            const selectedCompetencyId = this.value;
+            // Clear current level options
+            levelSelect.innerHTML = '<option value="">-- Select Level --</option>';
+
+            if (selectedCompetencyId && competenciesData[selectedCompetencyId]) {
+                const levels = competenciesData[selectedCompetencyId];
+                levels.forEach(function(level) {
+                    const option = document.createElement('option');
+                    option.value = level.id;
+                    option.textContent = level.text;
+                    levelSelect.appendChild(option);
+                });
+            }
+        });
+    });
+</script>
 
 <%@ include file="../layout/footer.jsp" %>

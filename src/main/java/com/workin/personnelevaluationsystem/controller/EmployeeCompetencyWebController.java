@@ -39,7 +39,8 @@ public class EmployeeCompetencyWebController {
 
     private void populateFormModel(Model model) {
         model.addAttribute("employees", employeeService.getAllEmployees());
-        model.addAttribute("competencies", competencyService.getAllCompetencies());
+        // Getting all competencies with their levels pre-fetched for the dropdowns
+        model.addAttribute("competenciesWithLevels", competencyService.getAllCompetencies());
         // For simplicity, we load all levels. A more advanced UI might load levels via JS based on competency selection.
         model.addAttribute("levels", competencyLevelService.getAllCompetencyLevels()); // You may need to add getAllCompetencyLevels() to your service
     }

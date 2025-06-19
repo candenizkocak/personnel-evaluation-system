@@ -37,10 +37,12 @@ public class GoalDTO {
     @NotNull(message = "Goal Type ID cannot be null")
     @Min(value = 1, message = "Goal Type ID must be a positive integer")
     private Integer goalTypeID; // Foreign key to GoalType
+    private String goalTypeName;
 
     @NotNull(message = "Goal Status ID cannot be null")
     @Min(value = 1, message = "Goal Status ID must be a positive integer")
     private Integer statusID; // Foreign key to GoalStatus
+    private String statusName;
 
     @PastOrPresent(message = "Start date cannot be in the future")
     private LocalDate startDate;
