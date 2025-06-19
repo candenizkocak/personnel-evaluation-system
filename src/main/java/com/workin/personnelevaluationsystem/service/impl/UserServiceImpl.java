@@ -208,4 +208,17 @@ public class UserServiceImpl implements UserService {
         // 2. Nullify references or handle dependent records.
         userRepository.deleteById(id);
     }
+    @Override
+    @Transactional
+    public void changePassword(Integer userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+
+        if (!bCryptPasswordEncoder.matches(oldPassword, user.getPasswordHash())) {
+            throw new BadRequestException("The old password you entered is incorrect.");
+        }
+
+        user.setPasswordHash(bCryptPasswordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

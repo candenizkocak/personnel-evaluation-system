@@ -1,3 +1,4 @@
+// src/main/webapp/WEB-INF/views/dashboard.jsp
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -59,7 +60,8 @@
         <a href="/goals" class="list-group-item list-group-item-action">Goals</a>
         <div class="list-group-item list-group-item-info mt-3"><strong>Feedback & Notifications:</strong></div>
         <a href="/feedback-types" class="list-group-item list-group-item-action">Feedback Types</a>
-        <a href="/feedback-list" class="list-group-item list-group-item-action">All Feedback</a>
+        <%-- THIS IS THE CORRECTED LINE --%>
+        <a href="/feedback/list" class="list-group-item list-group-item-action">All Feedback</a>
     </sec:authorize>
     <sec:authorize access="hasRole('EMPLOYEE')">
         <a href="/notifications" class="list-group-item list-group-item-action">Notifications</a>

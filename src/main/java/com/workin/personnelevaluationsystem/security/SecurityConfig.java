@@ -58,6 +58,7 @@ public class SecurityConfig {
 
                         // Authorize all web controller paths that require authentication.
                         .requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/profile/**").authenticated()
                         .requestMatchers("/departments/**").authenticated()
                         .requestMatchers("/positions/**").authenticated()
                         .requestMatchers("/employees/**").authenticated()
@@ -78,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/employee-competencies/**").authenticated()
                         .requestMatchers("/feedback-types/**").authenticated() // <-- ADD THIS
                         .requestMatchers("/feedback/**").authenticated()       // <-- AND THIS
+                        .requestMatchers("/notifications/**").authenticated()
 
                         // API endpoints
                         .requestMatchers("/api/v1/**").authenticated()

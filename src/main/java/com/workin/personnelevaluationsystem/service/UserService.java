@@ -12,5 +12,6 @@ public interface UserService {
     List<UserResponseDTO> getAllUsers();
     UserResponseDTO updateUser(Integer id, UserCreateDTO userUpdateDTO);
     void deleteUser(Integer id);
-    Optional<UserResponseDTO> getUserByUsername(String username); // Useful for login/auth checks
+    Optional<UserResponseDTO> getUserByUsername(String username);
+    void changePassword(Integer userId, String oldPassword, String newPassword); // ADD THIS
 }

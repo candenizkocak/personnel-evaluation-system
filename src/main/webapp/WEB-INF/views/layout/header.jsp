@@ -86,7 +86,8 @@
                         </a>
                         <div class="dropdown-menu" aria-labelledby="feedbackDropdown">
                             <a class="dropdown-item" href="/feedback-types">Types</a>
-                            <a class="dropdown-item" href="/feedback-list">All Feedback</a>
+                                <%-- THIS IS THE CORRECTED LINE --%>
+                            <a class="dropdown-item" href="/feedback/list">All Feedback</a>
                         </div>
                     </li>
                 </sec:authorize>
@@ -105,24 +106,24 @@
                     </li>
                 </sec:authorize>
 
-                <%-- General Employee Features (for any authenticated EMPLOYEE, including Managers/HR/Admin who also have EMPLOYEE role) --%>
-                <sec:authorize access="hasRole('EMPLOYEE')">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/my-profile">My Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/my-reviews">My Reviews</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/my-goals">My Goals</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/give-feedback">Give Feedback</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/notifications">Notifications</a>
-                    </li>
-                </sec:authorize>
+                    <%-- General Employee Features (for any authenticated EMPLOYEE, including Managers/HR/Admin who also have EMPLOYEE role) --%>
+                    <sec:authorize access="hasRole('EMPLOYEE')">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/profile/my-profile">My Profile</a> <%-- MODIFIED --%>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/performance-reviews/my-reviews">My Reviews</a> <%-- MODIFIED --%>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/goals">My Goals</a> <%-- MODIFIED --%>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/feedback/give">Give Feedback</a> <%-- MODIFIED --%>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/notifications">Notifications</a>
+                        </li>
+                    </sec:authorize>
 
             </ul>
             <ul class="navbar-nav ml-auto">
@@ -133,7 +134,7 @@
                             Welcome, <sec:authentication property="principal.username"/>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarUserDropdown">
-                            <a class="dropdown-item" href="/settings">Settings</a>
+                            <a class="dropdown-item" href="/profile/settings">Settings</a> <%-- MODIFIED --%>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#" onclick="document.getElementById('logoutForm').submit();">Logout</a>
                             <form id="logoutForm" action="/logout" method="post" style="display: none;">

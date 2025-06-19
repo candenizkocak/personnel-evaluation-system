@@ -16,6 +16,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/performance-reviews")
 public class PerformanceReviewWebController {
@@ -122,5 +124,18 @@ public class PerformanceReviewWebController {
         }
 
         return "redirect:/performance-reviews";
+    }
+    @GetMapping("/my-reviews")
+    @PreAuthorize("isAuthenticated()")
+    public String listMyReviews(@AuthenticationPrincipal User currentUser, Model model, RedirectAttributes redirectAttributes) {
+        if (currentUser.getEmployee() == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Your user account is not linked to an employee profile.");
+            return "redirect:/dashboard";
+        }
+        Integer employeeId = currentUser.getEmployee().getEmployeeID();
+        List<PerformanceReviewResponseDTO> myReviews = reviewService.getReviewsByEmployee(employeeId);
+        model.addAttribute("reviews", myReviews);
+        model.addAttribute("pageTitle", "My Performance Reviews");
+        return "performance-reviews/my-list";
     }
 }
