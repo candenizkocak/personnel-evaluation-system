@@ -127,7 +127,10 @@
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
-            <h3>PersonnelEval</h3>
+            <img src="/images/vitra_white.png" alt="VitrA Logo" height="40">
+            <br>
+            <br>
+            <h5>Personnel Evaluation System</h5>
         </div>
 
         <ul class="list-unstyled components">
@@ -143,7 +146,6 @@
                     <ul class="collapse list-unstyled" id="evaluationSubmenu">
                         <li><a href="/evaluation-periods">Periods</a></li>
                         <li><a href="/evaluation-types">Types</a></li>
-                        <li><a href="/question-types">Question Types</a></li>
                         <li><a href="/evaluation-forms">Forms</a></li>
                         <li><a href="/performance-reviews">Reviews</a></li>
                     </ul>
@@ -198,11 +200,22 @@
         <div class="top-bar">
             <div class="page-title">${pageTitle}</div>
             <div class="user-info">
-                <span class="welcome-text">Welcome, <sec:authentication property="principal.username"/></span>
-                <form action="/logout" method="post" class="d-inline">
-                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                    <button type="submit" class="btn btn-sm logout-btn">Logout</button>
-                </form>
+                <sec:authorize access="isAuthenticated()">
+                    <span class="welcome-text">Welcome, <sec:authentication property="principal.username"/></span>
+                    <form action="/logout" method="post" class="d-inline">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-sm logout-btn">Logout</button>
+                    </form>
+                </sec:authorize>
+                <sec:authorize access="isAnonymous()">
+                    <%-- For anonymous users on the home page, the login/register links are already in home.jsp's body.
+                         If you want login/register in the header for other anonymous pages, you can add them here.
+                         Example:
+                    <a href="/login" class="btn btn-sm btn-outline-primary mr-2">Login</a>
+                    <a href="/register" class="btn btn-sm btn-outline-secondary">Register</a>
+                         For now, we'll leave it empty if anonymous, as home.jsp handles it.
+                     --%>
+                </sec:authorize>
             </div>
         </div>
         <div class="container-fluid">
