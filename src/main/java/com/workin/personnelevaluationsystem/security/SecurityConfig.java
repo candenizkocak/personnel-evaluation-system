@@ -48,41 +48,27 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        .ignoringRequestMatchers("/api/v1/**")
+                        .ignoringRequestMatchers("/api/v1/**") // Keep ignoring API for CSRF if it's token-based
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public access for static resources and authentication pages
+                        // Public access for static resources and specific pages
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/", "/home", "/login", "/register", "/error").permitAll()
-                        .requestMatchers("/WEB-INF/**").permitAll()
+                        .requestMatchers("/login", "/register", "/error").permitAll() // Keep /login and /register public
+                        .requestMatchers("/WEB-INF/**").permitAll() // This is generally not needed and potentially insecure. Review if necessary.
 
-                        // Authorize all web controller paths that require authentication.
+                        // Secure the home/root paths
+                        .requestMatchers("/", "/home").authenticated() // <<< CHANGE HERE
+
+                        // Authorize other web controller paths that require authentication.
                         .requestMatchers("/dashboard").authenticated()
                         .requestMatchers("/profile/**").authenticated()
                         .requestMatchers("/departments/**").authenticated()
-                        .requestMatchers("/positions/**").authenticated()
-                        .requestMatchers("/employees/**").authenticated()
-                        .requestMatchers("/evaluation-forms/**").authenticated()
-                        .requestMatchers("/evaluation-periods/**").authenticated()
-                        .requestMatchers("/evaluation-types/**").authenticated()
-                        .requestMatchers("/question-types/**").authenticated()
-                        .requestMatchers("/performance-reviews/**").authenticated()
-                        .requestMatchers("/permissions/**").authenticated()
-                        .requestMatchers("/roles/**").authenticated()
-                        .requestMatchers("/users/**").authenticated()
-                        .requestMatchers("/goal-types/**").authenticated()
-                        .requestMatchers("/goal-statuses/**").authenticated()
-                        .requestMatchers("/goals/**").authenticated()
-                        .requestMatchers("/competency-categories/**").authenticated()
-                        .requestMatchers("/competencies/**").authenticated()
-                        .requestMatchers("/competency-levels/**").authenticated()
-                        .requestMatchers("/employee-competencies/**").authenticated()
-                        .requestMatchers("/feedback-types/**").authenticated() // <-- ADD THIS
-                        .requestMatchers("/feedback/**").authenticated()       // <-- AND THIS
+                        // ... (all your other authenticated paths) ...
+                        .requestMatchers("/feedback/**").authenticated()
                         .requestMatchers("/notifications/**").authenticated()
 
                         // API endpoints
-                        .requestMatchers("/api/v1/**").authenticated()
+                        .requestMatchers("/api/v1/**").authenticated() // Or use more specific rules like hasRole('API_USER') if applicable
 
                         // Default rule: any other request must be authenticated.
                         .anyRequest().authenticated()
