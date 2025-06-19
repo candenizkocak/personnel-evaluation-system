@@ -48,14 +48,18 @@ public class PerformanceReviewWebController {
     public String showStartNewReviewForm(Model model, @AuthenticationPrincipal User currentUser) {
         PerformanceReviewStartDTO startDTO = new PerformanceReviewStartDTO();
         if (currentUser != null && currentUser.getEmployee() != null) {
-            startDTO.setEvaluatorID(currentUser.getEmployee().getEmployeeID());
-        }
+            startDTO.setEvaluatorID(currentUser.getEmployee().getEmployeeID()); // This line is key
+        } // If currentUser or employee is null, evaluatorID will remain null, requiring manual selection or error handling
 
         model.addAttribute("reviewStartDto", startDTO);
-        model.addAttribute("employees", employeeService.getAllEmployees());
+        model.addAttribute("employees", employeeService.getAllEmployees()); // For 'Employee to Review' dropdown
         model.addAttribute("periods", periodService.getAllEvaluationPeriods());
         model.addAttribute("forms", formService.getAllEvaluationForms());
         model.addAttribute("pageTitle", "Start New Performance Review");
+        // Pass the current user's employee details for display if needed
+        if (currentUser != null && currentUser.getEmployee() != null) {
+            model.addAttribute("currentEvaluator", employeeService.getEmployeeById(currentUser.getEmployee().getEmployeeID()).orElse(null));
+        }
         return "performance-reviews/start-form";
     }
 
