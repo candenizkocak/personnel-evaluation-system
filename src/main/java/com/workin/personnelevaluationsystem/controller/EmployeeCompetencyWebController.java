@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/employee-competencies")
@@ -44,8 +47,23 @@ public class EmployeeCompetencyWebController {
     }
 
     @GetMapping
-    public String listAssessments(Model model) {
-        model.addAttribute("assessments", employeeCompetencyService.getAllEmployeeCompetencies());
+    public String listAssessments(Model model, @AuthenticationPrincipal User currentUser) {
+        List<EmployeeCompetencyDTO> assessments;
+        boolean isAdminOrHr = currentUser.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(roleName -> "ROLE_ADMIN".equals(roleName) || "ROLE_HR_SPECIALIST".equals(roleName));
+
+        if (isAdminOrHr) {
+            assessments = employeeCompetencyService.getAllEmployeeCompetencies();
+        } else { // Must be MANAGER
+            if (currentUser.getEmployee() != null) {
+                assessments = employeeCompetencyService.getCompetenciesForSubordinates(currentUser.getEmployee().getEmployeeID());
+            } else {
+                assessments = new ArrayList<>();
+                model.addAttribute("errorMessage", "Your user profile is not linked to an employee record. Cannot display subordinate competencies.");
+            }
+        }
+        model.addAttribute("assessments", assessments);
         model.addAttribute("pageTitle", "Employee Competency Assessments");
         return "employee-competencies/list";
     }

@@ -206,19 +206,79 @@ public class PerformanceReviewServiceImpl implements PerformanceReviewService {
     }
 
     @Override
-    @Transactional(readOnly = true) // Good practice for read operations
+    @Transactional(readOnly = true)
     public List<EmployeeAverageScoreDTO> getEmployeeAverageScores() {
-        // Fetch all reviews that are "Submitted" and have a finalScore
+        // This is the existing method for Admin/HR - fetch all
         List<PerformanceReview> submittedReviews = reviewRepository.findAll().stream()
-                .filter(review -> "Submitted".equalsIgnoreCase(review.getStatus()) && review.getFinalScore() != null)
+                .filter(review -> review.getEmployee() != null && "Submitted".equalsIgnoreCase(review.getStatus()) && review.getFinalScore() != null)
                 .collect(Collectors.toList());
+        return calculateAveragesFromReviews(submittedReviews);
+    }
 
-        if (submittedReviews.isEmpty()) {
+    @Override
+    @Transactional(readOnly = true)
+    public List<EmployeeAverageScoreDTO> getEmployeeAverageScoresForManager(Integer managerId) {
+        // Employee manager = employeeRepository.findById(managerId) // No need to fetch manager entity if we only need subordinates
+        //         .orElseThrow(() -> new ResourceNotFoundException("Manager not found with ID: " + managerId));
+
+        List<Employee> subordinates = employeeRepository.findByManager_EmployeeID(managerId); // Use repository method
+
+        if (subordinates == null || subordinates.isEmpty()) {
             return new ArrayList<>();
         }
 
-        // Group reviews by employee and calculate average scores
-        Map<Employee, List<PerformanceReview>> reviewsByEmployee = submittedReviews.stream()
+        List<Integer> subordinateIds = subordinates.stream()
+                .map(Employee::getEmployeeID)
+                .collect(Collectors.toList());
+
+        if (subordinateIds.isEmpty()) { // Should be redundant if subordinates list was checked, but safe
+            return new ArrayList<>();
+        }
+
+        List<PerformanceReview> submittedReviewsForSubordinates = reviewRepository.findAll().stream()
+                .filter(review -> review.getEmployee() != null &&
+                                 subordinateIds.contains(review.getEmployee().getEmployeeID()) &&
+                                 "Submitted".equalsIgnoreCase(review.getStatus()) &&
+                                 review.getFinalScore() != null)
+                .collect(Collectors.toList());
+
+        return calculateAveragesFromReviews(submittedReviewsForSubordinates);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PerformanceReviewResponseDTO> getReviewsForSubordinates(Integer managerId) {
+        // Employee manager = employeeRepository.findById(managerId)
+        //         .orElseThrow(() -> new ResourceNotFoundException("Manager not found with ID: " + managerId));
+
+        List<Employee> subordinates = employeeRepository.findByManager_EmployeeID(managerId); // Use repository method
+
+        if (subordinates == null || subordinates.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Integer> subordinateIds = subordinates.stream()
+                .map(Employee::getEmployeeID)
+                .collect(Collectors.toList());
+
+        if (subordinateIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return reviewRepository.findAll().stream()
+                .filter(review -> review.getEmployee() != null && subordinateIds.contains(review.getEmployee().getEmployeeID()))
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    // Helper method to avoid code duplication
+    private List<EmployeeAverageScoreDTO> calculateAveragesFromReviews(List<PerformanceReview> reviews) {
+        if (reviews.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Map<Employee, List<PerformanceReview>> reviewsByEmployee = reviews.stream()
+                .filter(r -> r.getEmployee() != null) // Ensure employee is not null
                 .collect(Collectors.groupingBy(PerformanceReview::getEmployee));
 
         List<EmployeeAverageScoreDTO> averageScores = new ArrayList<>();
@@ -226,23 +286,27 @@ public class PerformanceReviewServiceImpl implements PerformanceReviewService {
             Employee employee = entry.getKey();
             List<PerformanceReview> employeeReviews = entry.getValue();
 
-            if (employee == null || employeeReviews.isEmpty()) continue; // Skip if no employee or no reviews for employee
+            if (employeeReviews.isEmpty()) continue;
 
             BigDecimal sumOfScores = employeeReviews.stream()
                     .map(PerformanceReview::getFinalScore)
+                    .filter(score -> score != null) // Ensure score is not null before adding
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            BigDecimal average = sumOfScores.divide(new BigDecimal(employeeReviews.size()), 2, RoundingMode.HALF_UP);
+            long validReviewCount = employeeReviews.stream().filter(r -> r.getFinalScore() != null).count();
+            if (validReviewCount == 0) continue;
+
+            BigDecimal average = sumOfScores.divide(new BigDecimal(validReviewCount), 2, RoundingMode.HALF_UP);
 
             averageScores.add(new EmployeeAverageScoreDTO(
                     employee.getEmployeeID(),
                     employee.getFirstName() + " " + employee.getLastName(),
                     average,
-                    employeeReviews.size()
+                    (int) validReviewCount // Cast long to int
             ));
         }
-        // Sort by average score descending for better chart visualization (optional)
         averageScores.sort((s1, s2) -> s2.getAverageScore().compareTo(s1.getAverageScore()));
         return averageScores;
     }
 }
+

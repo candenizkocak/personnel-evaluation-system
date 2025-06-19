@@ -20,4 +20,9 @@ public interface PerformanceReviewService {
     List<PerformanceReviewResponseDTO> getReviewsByEvaluator(Integer evaluatorId);
 
     List<EmployeeAverageScoreDTO> getEmployeeAverageScores();
+
+    List<EmployeeAverageScoreDTO> getEmployeeAverageScoresForManager(Integer managerId);
+
+    List<PerformanceReviewResponseDTO> getReviewsForSubordinates(Integer managerId);
+
 }

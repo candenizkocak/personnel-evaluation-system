@@ -140,13 +140,17 @@
                 <li><a href="/departments"><i class="fas fa-building"></i> Departments</a></li>
                 <li><a href="/employees"><i class="fas fa-users"></i> Employees</a></li>
                 <li><a href="/positions"><i class="fas fa-user-tie"></i> Positions</a></li>
+            </sec:authorize>
 
+            <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')">
                 <li>
                     <a href="#evaluationSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-clipboard-list"></i> Evaluations</a>
                     <ul class="collapse list-unstyled" id="evaluationSubmenu">
-                        <li><a href="/evaluation-periods">Periods</a></li>
-                        <li><a href="/evaluation-types">Types</a></li>
-                        <li><a href="/evaluation-forms">Forms</a></li>
+                        <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
+                            <li><a href="/evaluation-periods">Periods</a></li>
+                            <li><a href="/evaluation-types">Types</a></li>
+                            <li><a href="/evaluation-forms">Forms</a></li>
+                        </sec:authorize>
                         <li><a href="/performance-reviews">Reviews</a></li>
                         <li><a href="/performance-reviews/average-scores">Average Scores Chart</a></li>
                     </ul>
@@ -154,25 +158,40 @@
                 <li>
                     <a href="#competencySubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-star"></i> Competencies</a>
                     <ul class="collapse list-unstyled" id="competencySubmenu">
-                        <li><a href="/competency-categories">Categories</a></li>
-                        <li><a href="/competencies">Competencies</a></li>
-                        <li><a href="/competency-levels">Levels</a></li>
+                        <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
+                            <li><a href="/competency-categories">Categories</a></li>
+                            <li><a href="/competencies">Competencies</a></li>
+                            <li><a href="/competency-levels">Levels</a></li>
+                        </sec:authorize>
                         <li><a href="/employee-competencies">Employee Assessments</a></li>
                     </ul>
                 </li>
+            </sec:authorize>
+
+            <sec:authorize access="isAuthenticated()">
                 <li>
                     <a href="#goalSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-bullseye"></i> Goals</a>
                     <ul class="collapse list-unstyled" id="goalSubmenu">
-                        <li><a href="/goal-types">Types</a></li>
-                        <li><a href="/goal-statuses">Statuses</a></li>
+                        <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
+                            <li><a href="/goal-types">Types</a></li>
+                            <li><a href="/goal-statuses">Statuses</a></li>
+                        </sec:authorize>
                         <li><a href="/goals">All Goals</a></li>
                     </ul>
                 </li>
+            </sec:authorize>
+
+            <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')">
                 <li>
                     <a href="#feedbackSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-comments"></i> Feedback</a>
                     <ul class="collapse list-unstyled" id="feedbackSubmenu">
-                        <li><a href="/feedback-types">Types</a></li>
-                        <li><a href="/feedback/list">All Feedback</a></li>
+                        <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
+                            <li><a href="/feedback-types">Types</a></li>
+                            <li><a href="/feedback/list">All Feedback</a></li>
+                        </sec:authorize>
+                        <sec:authorize access="hasRole('MANAGER')">
+                            <li><a href="/feedback/team">Team Feedback</a></li>
+                        </sec:authorize>
                     </ul>
                 </li>
             </sec:authorize>

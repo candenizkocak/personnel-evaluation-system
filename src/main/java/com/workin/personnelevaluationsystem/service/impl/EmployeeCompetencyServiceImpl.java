@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -180,5 +181,29 @@ public class EmployeeCompetencyServiceImpl implements EmployeeCompetencyService 
             throw new ResourceNotFoundException("Employee competency record not found for Employee ID " + employeeId + ", Competency ID " + competencyId + " on " + assessmentDate);
         }
         employeeCompetencyRepository.deleteById(idToDelete);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EmployeeCompetencyDTO> getCompetenciesForSubordinates(Integer managerId) {
+        List<Employee> subordinates = employeeRepository.findByManager_EmployeeID(managerId); // Use repository method
+
+        if (subordinates == null || subordinates.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Integer> subordinateIds = subordinates.stream()
+                .map(Employee::getEmployeeID)
+                .collect(Collectors.toList());
+
+        if (subordinateIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Fetch all competencies and then filter.
+        return employeeCompetencyRepository.findAll().stream()
+                .filter(ec -> ec.getEmployee() != null && subordinateIds.contains(ec.getEmployee().getEmployeeID()))
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 }

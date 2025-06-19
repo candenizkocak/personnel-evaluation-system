@@ -13,7 +13,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
+import org.springframework.security.core.GrantedAuthority; // For checking roles
 
 @Controller
 @RequestMapping("/performance-reviews")
@@ -32,10 +34,26 @@ public class PerformanceReviewWebController {
         this.formService = formService;
     }
 
-    @GetMapping
+    @GetMapping // This is the /performance-reviews endpoint
     @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')")
-    public String listReviews(Model model) {
-        model.addAttribute("reviews", reviewService.getAllPerformanceReviews());
+    public String listReviews(Model model, @AuthenticationPrincipal User currentUser) {
+        currentUser.getAuthorities().forEach(auth -> System.out.println("User Authority: " + auth.getAuthority()));
+        List<PerformanceReviewResponseDTO> reviews;
+        boolean isAdminOrHr = currentUser.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(roleName -> "ROLE_ADMIN".equals(roleName) || "ROLE_HR_SPECIALIST".equals(roleName));
+
+        if (isAdminOrHr) {
+            reviews = reviewService.getAllPerformanceReviews();
+        } else { // Must be a MANAGER
+            if (currentUser.getEmployee() != null) {
+                reviews = reviewService.getReviewsForSubordinates(currentUser.getEmployee().getEmployeeID());
+            } else {
+                reviews = new ArrayList<>();
+                model.addAttribute("errorMessage", "Your user profile is not linked to an employee record. Cannot display subordinate reviews.");
+            }
+        }
+        model.addAttribute("reviews", reviews);
         model.addAttribute("pageTitle", "Performance Reviews");
         return "performance-reviews/list";
     }
@@ -141,9 +159,25 @@ public class PerformanceReviewWebController {
     }
 
     @GetMapping("/average-scores")
-    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')") // Adjust roles as needed
-    public String showAverageScoresChart(Model model) {
-        List<EmployeeAverageScoreDTO> averageScores = reviewService.getEmployeeAverageScores();
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')")
+    public String showAverageScoresChart(Model model, @AuthenticationPrincipal User currentUser) {
+        currentUser.getAuthorities().forEach(auth -> System.out.println("User Authority: " + auth.getAuthority()));
+        List<EmployeeAverageScoreDTO> averageScores;
+        boolean isAdminOrHr = currentUser.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(roleName -> "ROLE_ADMIN".equals(roleName) || "ROLE_HR_SPECIALIST".equals(roleName));
+
+        if (isAdminOrHr) {
+            averageScores = reviewService.getEmployeeAverageScores();
+        } else { // Must be a MANAGER if not Admin/HR due to PreAuthorize
+            if (currentUser.getEmployee() != null) {
+                averageScores = reviewService.getEmployeeAverageScoresForManager(currentUser.getEmployee().getEmployeeID());
+            } else {
+                averageScores = new ArrayList<>(); // Manager not linked to an employee
+                model.addAttribute("errorMessage", "Your user profile is not linked to an employee record. Cannot display subordinate scores.");
+            }
+        }
+
         model.addAttribute("averageScoresData", averageScores);
         model.addAttribute("pageTitle", "Employee Average Scores");
         return "performance-reviews/average-scores-chart";
