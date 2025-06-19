@@ -51,6 +51,8 @@ public class PerformanceReviewServiceImpl implements PerformanceReviewService {
                 .responseID(response.getResponseID())
                 .questionID(question != null ? question.getQuestionID() : null)
                 .questionText(question != null ? question.getQuestionText() : "N/A")
+                // ADD THIS LINE to populate questionTypeID
+                .questionTypeID(question != null && question.getQuestionType() != null ? question.getQuestionType().getQuestionTypeID() : null)
                 .responseText(response.getResponseText())
                 .numericResponse(response.getNumericResponse())
                 .build();

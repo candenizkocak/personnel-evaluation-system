@@ -23,8 +23,8 @@ public class ReviewResponseDTO {
     @Min(value = 1, message = "Question ID must be a positive integer")
     private Integer questionID;
 
-    // Add this field to hold the question text for display on the form
     private String questionText;
+    private Integer questionTypeID;
 
     @Size(max = 4000, message = "Response text cannot exceed 4000 characters")
     private String responseText;
