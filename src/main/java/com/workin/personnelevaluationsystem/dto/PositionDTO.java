@@ -25,10 +25,11 @@ public class PositionDTO {
     @Size(max = 500, message = "Position description cannot exceed 500 characters")
     private String description;
 
-    // Foreign key to Department. It should not be null if a position must belong to a department.
     @NotNull(message = "Department ID cannot be null")
-    @Min(value = 1, message = "Department ID must be a positive integer") // Assuming IDs start from 1
+    @Min(value = 1, message = "Department ID must be a positive integer")
     private Integer departmentID;
+
+    private String departmentName; // ADD THIS FIELD for display purposes
 
     @NotNull(message = "IsManagement status cannot be null")
     private Boolean isManagement;

@@ -1,8 +1,8 @@
 package com.workin.personnelevaluationsystem.service.impl;
 
 import com.workin.personnelevaluationsystem.dto.PositionDTO;
-import com.workin.personnelevaluationsystem.exception.BadRequestException; // Import new exception
-import com.workin.personnelevaluationsystem.exception.ResourceNotFoundException; // Import new exception
+import com.workin.personnelevaluationsystem.exception.BadRequestException;
+import com.workin.personnelevaluationsystem.exception.ResourceNotFoundException;
 import com.workin.personnelevaluationsystem.model.Department;
 import com.workin.personnelevaluationsystem.model.Position;
 import com.workin.personnelevaluationsystem.repository.DepartmentRepository;
@@ -34,6 +34,7 @@ public class PositionServiceImpl implements PositionService {
                 .title(position.getTitle())
                 .description(position.getDescription())
                 .departmentID(position.getDepartment() != null ? position.getDepartment().getDepartmentID() : null)
+                .departmentName(position.getDepartment() != null ? position.getDepartment().getName() : null) // POPULATE THE NEW FIELD
                 .isManagement(position.getIsManagement())
                 .build();
     }
@@ -57,7 +58,7 @@ public class PositionServiceImpl implements PositionService {
 
     @Override
     public PositionDTO createPosition(PositionDTO positionDTO) {
-        Position position = convertToEntity(positionDTO); // This might throw BadRequestException
+        Position position = convertToEntity(positionDTO);
         Position savedPosition = positionRepository.save(position);
         return convertToDto(savedPosition);
     }

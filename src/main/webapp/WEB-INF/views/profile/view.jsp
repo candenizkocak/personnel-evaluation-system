@@ -1,34 +1,32 @@
-// src/main/webapp/WEB-INF/views/profile/view.jsp
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="../layout/header.jsp" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="pageTitle" value="My Profile" scope="request" />
 
-<h2 class="mb-4">${pageTitle}</h2>
+<div class="card shadow-sm">
+    <div class="card-header"><h4 class="mb-0">${employee.firstName} ${employee.lastName}</h4></div>
+    <div class="card-body">
+        <c:if test="${not empty errorMessage}"><div class="alert alert-danger">${errorMessage}</div></c:if>
+        <c:if test="${not empty employee}">
+            <dl class="row">
+                <dt class="col-sm-3">Position</dt>
+                <dd class="col-sm-9">${employee.positionTitle}</dd>
 
-<c:if test="${not empty errorMessage}"><div class="alert alert-danger">${errorMessage}</div></c:if>
+                <dt class="col-sm-3">Manager</dt>
+                <dd class="col-sm-9">${empty employee.managerFullName ? 'N/A' : employee.managerFullName}</dd>
 
-<c:if test="${not empty employee}">
-    <div class="card">
-        <div class="card-header">
-            <h4>${employee.firstName} ${employee.lastName}</h4>
-        </div>
-        <div class="card-body">
-            <p><strong>Position:</strong> ${employee.positionTitle}</p>
-            <p><strong>Manager:</strong> ${employee.managerFullName != null ? employee.managerFullName : 'N/A'}</p>
-            <hr>
-            <p><strong>Email:</strong> ${employee.email}</p>
-            <p><strong>Phone:</strong> ${employee.phone}</p>
-            <p><strong>Hire Date:</strong> ${employee.hireDate}</p>
-        </div>
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">${employee.email}</dd>
+
+                <dt class="col-sm-3">Phone</dt>
+                <dd class="col-sm-9">${empty employee.phone ? 'N/A' : employee.phone}</dd>
+
+                <dt class="col-sm-3">Hire Date</dt>
+                <dd class="col-sm-9">${employee.hireDate}</dd>
+            </dl>
+        </c:if>
+        <c:if test="${empty employee && empty errorMessage}">
+            <div class="alert alert-warning">No profile information available.</div>
+        </c:if>
     </div>
-</c:if>
-
-<c:if test="${empty employee && empty errorMessage}">
-    <div class="alert alert-warning">No profile information available.</div>
-</c:if>
-
-<div class="mt-3">
-    <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
 </div>
-
 <%@ include file="../layout/footer.jsp" %>

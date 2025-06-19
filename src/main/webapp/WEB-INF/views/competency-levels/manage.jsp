@@ -1,13 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="../layout/header.jsp" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<h2 class="mb-4">${pageTitle}</h2>
+<c:set var="pageTitle" value="Levels for: ${competency.name}" scope="request" />
+
 <c:if test="${not empty successMessage}"><div class="alert alert-success">${successMessage}</div></c:if>
 <c:if test="${not empty errorMessage}"><div class="alert alert-danger">${errorMessage}</div></c:if>
 
-<div class="card mb-4">
-    <div class="card-header">Existing Levels</div>
+<div class="card shadow-sm mb-4">
+    <div class="card-header"><h4 class="mb-0">Existing Levels</h4></div>
     <div class="card-body">
         <c:if test="${empty levels}"><p class="text-muted">No levels defined for this competency.</p></c:if>
         <c:if test="${not empty levels}">
@@ -23,8 +23,8 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">Add New Level</div>
+<div class="card shadow-sm">
+    <div class="card-header"><h4 class="mb-0">Add New Level</h4></div>
     <div class="card-body">
         <form:form action="/competency-levels/add/${competency.competencyID}" method="post" modelAttribute="newLevel">
             <div class="form-row">
