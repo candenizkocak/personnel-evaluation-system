@@ -217,8 +217,6 @@
 
             <sec:authorize access="hasRole('ADMIN')">
                 <li><a href="<c:url value='/users'/>"><i class="fas fa-user-cog"></i> Manage Users</a></li>
-                <li><a href="<c:url value='/roles'/>"><i class="fas fa-users-cog"></i> Manage Roles</a></li>
-                <li><a href="<c:url value='/permissions'/>"><i class="fas fa-key"></i> Manage Permissions</a></li>
             </sec:authorize>
 
             <sec:authorize access="isAuthenticated()">
