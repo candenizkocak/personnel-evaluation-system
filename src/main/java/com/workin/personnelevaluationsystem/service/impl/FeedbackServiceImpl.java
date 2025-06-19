@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -181,5 +182,37 @@ public class FeedbackServiceImpl implements FeedbackService {
             throw new ResourceNotFoundException("Feedback not found with ID: " + id);
         }
         feedbackRepository.deleteById(id);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<FeedbackResponseDTO> getTeamFeedback(Integer managerId) {
+        Employee manager = employeeRepository.findById(managerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Manager not found with ID: " + managerId));
+
+        List<Employee> subordinates = employeeRepository.findByManager_EmployeeID(managerId);
+
+        if (subordinates == null || subordinates.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Integer> subordinateIds = subordinates.stream()
+                .map(Employee::getEmployeeID)
+                .collect(Collectors.toList());
+
+        if (subordinateIds.isEmpty()){
+            return new ArrayList<>();
+        }
+
+        // Fetch all feedback, then filter if either sender or receiver is a subordinate
+        // This could be optimized with a more complex JPQL query if performance becomes an issue
+        // for very large feedback tables.
+        return feedbackRepository.findAll().stream()
+                .filter(feedback ->
+                        (feedback.getSender() != null && subordinateIds.contains(feedback.getSender().getEmployeeID())) ||
+                                (feedback.getReceiver() != null && subordinateIds.contains(feedback.getReceiver().getEmployeeID()))
+                )
+                .map(this::convertToResponseDto)
+                .sorted((f1, f2) -> f2.getSubmissionDate().compareTo(f1.getSubmissionDate())) // Sort by newest first
+                .collect(Collectors.toList());
     }
 }

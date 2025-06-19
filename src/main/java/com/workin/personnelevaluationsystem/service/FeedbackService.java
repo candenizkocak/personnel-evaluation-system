@@ -15,4 +15,5 @@ public interface FeedbackService {
     List<FeedbackResponseDTO> getFeedbackByTypeId(Integer feedbackTypeId);
     FeedbackResponseDTO updateFeedback(Integer id, FeedbackCreateDTO feedbackDetailsDTO);
     void deleteFeedback(Integer id);
+    List<FeedbackResponseDTO> getTeamFeedback(Integer managerId);
 }

@@ -1,6 +1,7 @@
 package com.workin.personnelevaluationsystem.controller;
 
 import com.workin.personnelevaluationsystem.dto.FeedbackCreateDTO;
+import com.workin.personnelevaluationsystem.dto.FeedbackResponseDTO;
 import com.workin.personnelevaluationsystem.model.User;
 import com.workin.personnelevaluationsystem.service.EmployeeService;
 import com.workin.personnelevaluationsystem.service.FeedbackService;
@@ -15,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
@@ -96,5 +98,19 @@ public class FeedbackWebController {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting feedback: " + e.getMessage());
         }
         return "redirect:/feedback/list";
+    }
+    @GetMapping("/team")
+    @PreAuthorize("hasRole('MANAGER')") // Only managers can see team feedback
+    public String listTeamFeedback(Model model, @AuthenticationPrincipal User currentUser, RedirectAttributes redirectAttributes) {
+        if (currentUser.getEmployee() == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Your user profile is not linked to an employee record to view team feedback.");
+            return "redirect:/dashboard";
+        }
+        Integer managerId = currentUser.getEmployee().getEmployeeID();
+        List<FeedbackResponseDTO> teamFeedback = feedbackService.getTeamFeedback(managerId);
+
+        model.addAttribute("feedbackList", teamFeedback);
+        model.addAttribute("pageTitle", "Team Feedback");
+        return "feedback/team-list"; // We'll create this JSP next
     }
 }
