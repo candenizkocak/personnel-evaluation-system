@@ -96,6 +96,16 @@
             display: flex;
             align-items: center;
         }
+        .top-bar .notification-icon { /* Style for the icon */
+            font-size: 1.3rem; /* Adjust size as needed */
+            color: #555;
+            margin-right: 15px;
+            text-decoration: none;
+            position: relative; /* For potential badge later */
+        }
+        .top-bar .notification-icon:hover {
+            color: #005f73; /* Or your primary color */
+        }
         .top-bar .welcome-text {
             margin-right: 15px;
             color: #555;
@@ -127,90 +137,101 @@
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
-            <img src="/images/vitra_white.png" alt="VitrA Logo" height="40">
-            <br>
-            <br>
-            <h5>Personnel Evaluation System</h5>
+            <h3>PersonnelEval</h3>
         </div>
 
         <ul class="list-unstyled components">
-            <li><a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="<c:url value='/dashboard'/>"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
 
+            <%-- Admin & HR Specific Management Links --%>
             <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
-                <li><a href="/departments"><i class="fas fa-building"></i> Departments</a></li>
-                <li><a href="/employees"><i class="fas fa-users"></i> Employees</a></li>
-                <li><a href="/positions"><i class="fas fa-user-tie"></i> Positions</a></li>
+                <li><a href="<c:url value='/departments'/>"><i class="fas fa-building"></i> Departments</a></li>
+                <li><a href="<c:url value='/employees'/>"><i class="fas fa-users"></i> Employees</a></li>
+                <li><a href="<c:url value='/positions'/>"><i class="fas fa-user-tie"></i> Positions</a></li>
             </sec:authorize>
 
+            <%-- Evaluations Menu - Granular Access --%>
             <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')">
                 <li>
                     <a href="#evaluationSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-clipboard-list"></i> Evaluations</a>
                     <ul class="collapse list-unstyled" id="evaluationSubmenu">
                         <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
-                            <li><a href="/evaluation-periods">Periods</a></li>
-                            <li><a href="/evaluation-types">Types</a></li>
-                            <li><a href="/evaluation-forms">Forms</a></li>
+                            <li><a href="<c:url value='/evaluation-periods'/>">Periods</a></li>
+                            <li><a href="<c:url value='/evaluation-types'/>">Types</a></li>
+                            <li><a href="<c:url value='/evaluation-forms'/>">Forms</a></li>
                         </sec:authorize>
-                        <li><a href="/performance-reviews">Reviews</a></li>
-                        <li><a href="/performance-reviews/average-scores">Average Scores Chart</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#competencySubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-star"></i> Competencies</a>
-                    <ul class="collapse list-unstyled" id="competencySubmenu">
-                        <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
-                            <li><a href="/competency-categories">Categories</a></li>
-                            <li><a href="/competencies">Competencies</a></li>
-                            <li><a href="/competency-levels">Levels</a></li>
+                        <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')">
+                            <li><a href="<c:url value='/performance-reviews'/>">Reviews</a></li>
+                            <li><a href="<c:url value='/performance-reviews/average-scores'/>">Average Scores Chart</a></li>
                         </sec:authorize>
-                        <li><a href="/employee-competencies">Employee Assessments</a></li>
                     </ul>
                 </li>
             </sec:authorize>
 
+            <%-- Competencies Menu - Granular Access --%>
+            <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')">
+                <li>
+                    <a href="#competencySubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-star"></i> Competencies</a>
+                    <ul class="collapse list-unstyled" id="competencySubmenu">
+                        <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
+                            <li><a href="<c:url value='/competency-categories'/>">Categories</a></li>
+                            <li><a href="<c:url value='/competencies'/>">Competencies</a></li>
+                            <li><a href="<c:url value='/competency-levels'/>">Levels</a></li>
+                        </sec:authorize>
+                        <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')">
+                            <li><a href="<c:url value='/employee-competencies'/>">Employee Assessments</a></li>
+                        </sec:authorize>
+                    </ul>
+                </li>
+            </sec:authorize>
+
+            <%-- Goals Menu --%>
             <sec:authorize access="isAuthenticated()">
                 <li>
                     <a href="#goalSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-bullseye"></i> Goals</a>
                     <ul class="collapse list-unstyled" id="goalSubmenu">
                         <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
-                            <li><a href="/goal-types">Types</a></li>
-                            <li><a href="/goal-statuses">Statuses</a></li>
+                            <li><a href="<c:url value='/goal-types'/>">Types</a></li>
+                            <li><a href="<c:url value='/goal-statuses'/>">Statuses</a></li>
                         </sec:authorize>
-                        <li><a href="/goals">All Goals</a></li>
+                        <li><a href="<c:url value='/goals'/>">All Goals</a></li>
                     </ul>
                 </li>
             </sec:authorize>
 
+            <%-- Feedback Menu --%>
             <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST', 'MANAGER')">
                 <li>
                     <a href="#feedbackSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-comments"></i> Feedback</a>
                     <ul class="collapse list-unstyled" id="feedbackSubmenu">
                         <sec:authorize access="hasAnyRole('ADMIN', 'HR_SPECIALIST')">
-                            <li><a href="/feedback-types">Types</a></li>
-                            <li><a href="/feedback/list">All Feedback</a></li>
+                            <li><a href="<c:url value='/feedback-types'/>">Types</a></li>
+                            <li><a href="<c:url value='/feedback/list'/>">All Feedback</a></li>
                         </sec:authorize>
                         <sec:authorize access="hasRole('MANAGER')">
-                            <li><a href="/feedback/team">Team Feedback</a></li>
+                            <li><a href="<c:url value='/feedback/team'/>">Team Feedback</a></li>
                         </sec:authorize>
                     </ul>
                 </li>
             </sec:authorize>
 
             <sec:authorize access="hasRole('ADMIN')">
-                <li><a href="/users"><i class="fas fa-user-cog"></i> Manage Users</a></li>
+                <li><a href="<c:url value='/users'/>"><i class="fas fa-user-cog"></i> Manage Users</a></li>
+                <li><a href="<c:url value='/roles'/>"><i class="fas fa-users-cog"></i> Manage Roles</a></li>
+                <li><a href="<c:url value='/permissions'/>"><i class="fas fa-key"></i> Manage Permissions</a></li>
             </sec:authorize>
 
             <sec:authorize access="isAuthenticated()">
                 <li>
                     <a href="#myStuffSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-user-circle"></i> My Area</a>
                     <ul class="collapse list-unstyled" id="myStuffSubmenu">
-                        <li><a href="/profile/my-profile">My Profile</a></li>
-                        <li><a href="/performance-reviews/my-reviews">My Reviews</a></li>
-                        <li><a href="/goals">My Goals</a></li>
-                        <li><a href="/feedback/give">Give Feedback</a></li>
+                        <li><a href="<c:url value='/profile/my-profile'/>">My Profile</a></li>
+                        <li><a href="<c:url value='/performance-reviews/my-reviews'/>">My Reviews</a></li>
+                        <li><a href="<c:url value='/goals'/>">My Goals</a></li>
+                        <li><a href="<c:url value='/feedback/give'/>">Give Feedback</a></li>
                     </ul>
                 </li>
-                <li><a href="/notifications"><i class="fas fa-bell"></i> Notifications</a></li>
+                <%-- Notification link is moved to top-bar, so it's removed from sidebar's "My Area" or main list --%>
             </sec:authorize>
         </ul>
     </nav>
@@ -221,21 +242,22 @@
             <div class="page-title">${pageTitle}</div>
             <div class="user-info">
                 <sec:authorize access="isAuthenticated()">
+                    <a href="<c:url value='/notifications'/>" class="notification-icon" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                            <%-- Placeholder for unread count badge:
+                            <span class="badge badge-danger badge-pill" style="position: absolute; top: -5px; right: -5px;">3</span>
+                            --%>
+                    </a>
                     <span class="welcome-text">Welcome, <sec:authentication property="principal.username"/></span>
-                    <form action="/logout" method="post" class="d-inline">
+                    <form action="<c:url value='/logout'/>" method="post" class="d-inline">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                         <button type="submit" class="btn btn-sm logout-btn">Logout</button>
                     </form>
                 </sec:authorize>
                 <sec:authorize access="isAnonymous()">
-                    <%-- For anonymous users on the home page, the login/register links are already in home.jsp's body.
-                         If you want login/register in the header for other anonymous pages, you can add them here.
-                         Example:
-                    <a href="/login" class="btn btn-sm btn-outline-primary mr-2">Login</a>
-                    <a href="/register" class="btn btn-sm btn-outline-secondary">Register</a>
-                         For now, we'll leave it empty if anonymous, as home.jsp handles it.
-                     --%>
+                    <%-- Content for anonymous users if needed in top-bar --%>
                 </sec:authorize>
             </div>
         </div>
         <div class="container-fluid">
+<%-- Page content will be inserted here by other JSPs --%>
