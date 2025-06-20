@@ -7,6 +7,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${pageTitle} - Personnel Evaluation System</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="<c:url value='/resources/images/favicon.ico'/>" type="image/x-icon">
+    <link rel="shortcut icon" href="<c:url value='/resources/images/favicon.ico'/>" type="image/x-icon">
+
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
@@ -137,7 +142,10 @@
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
-            <h3>PersonnelEval</h3>
+            <img src="<c:url value='/images/vitra_white.png'/>" alt="VitrA Logo" height="40">
+            <br>
+            <br>
+            <h5>Personnel Evaluation System</h5>
         </div>
 
         <ul class="list-unstyled components">
